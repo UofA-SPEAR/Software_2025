@@ -1,0 +1,30 @@
+# Ignore build and install directories
+build/
+install/
+log/
+
+# Ignore package-specific build directories
+build_isolated/
+install_isolated/
+log_isolated/
+
+# Ignore Python bytecodes
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore temporary files
+*~
+*.swp
+*.tmp
+
+# Ignore all text files that might be generated
+*.txt
+
+# Ignore IDE specific files
+.vscode/
+.idea/
+
+# Ignore other common directories that should not be part of the repository
+.development/
+
