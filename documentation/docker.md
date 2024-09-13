@@ -13,6 +13,7 @@ Docker simplifies application deployment by using containers, which are isolated
 - **Docker Container**: A container is a runnable instance of a Docker image. It is a lightweight, standalone, executable package that includes everything needed to run the application. Containers can be started, stopped, moved, and deleted, making them very flexible and easy to manage.
 
 ## Installing Docker Engine
+If you do not have a linux device you will need a virtual machine (VM) such as WSL.
 
 ### Docker on Ubuntu
 
