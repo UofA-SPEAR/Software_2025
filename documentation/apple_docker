@@ -1,5 +1,5 @@
-# Use the NVIDIA CUDA base image with cuDNN
-FROM nvidia/cuda:12.6.1-devel-ubuntu22.04
+# Use the base image for Ubuntu 22.04
+FROM ubuntu:22.04
 
 # Set environment variables for non-interactive installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -49,12 +49,6 @@ RUN apt-get update && \
     ros-humble-rclcpp \
     && rm -rf /var/lib/apt/lists/*
 
-# # Install ZED SDK 4.1.2 for Ubuntu 22.04
-# RUN cd /tmp && \
-#     curl -L https://download.stereolabs.com/zedsdk/4.1.2/ubuntu22.04 -o zed_sdk_4.1.2_ubuntu22.04.run && \
-#     chmod +x zed_sdk_4.1.2_ubuntu22.04.run && \
-#     bash ./zed_sdk_4.1.2_ubuntu22.04.run || (echo "Failed to install ZED SDK" && exit 1)
-
 # Update package lists and install necessary packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends software-properties-common && \
@@ -64,13 +58,6 @@ RUN apt-get update && \
     apt-get update && \
     # Install zstd
     apt-get install -y --no-install-recommends zstd && \
-    cd /tmp && \
-    # Download and install the ZED SDK
-    curl -L https://download.stereolabs.com/zedsdk/4.1/cu121/ubuntu22 -o zed_sdk_4.1.2_ubuntu22.04.run && \
-    chmod +x zed_sdk_4.1.2_ubuntu22.04.run && \
-    ./zed_sdk_4.1.2_ubuntu22.04.run -- silent || (echo "Failed to install ZED SDK" && exit 1) && \
-    # Clean up
-    rm zed_sdk_4.1.2_ubuntu22.04.run && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install other required libraries
@@ -90,21 +77,6 @@ RUN pip3 install \
     && pip3 install --upgrade \
     setuptools \
     wheel
-
-# NVIDIA Container Toolkit installation
-RUN curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | apt-key add - && \
-    distribution=$(lsb_release -c -s) && \
-    curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | tee /etc/apt/sources.list.d/nvidia-docker.list && \
-    apt-get update && \
-    apt-get install -y nvidia-container-toolkit && \
-    rm -rf /var/lib/apt/lists/*
-
-# Restart Docker (optional, but not necessary inside a container build context)
-# RUN systemctl restart docker
-
-# Set environment variables for CUDA
-ENV PATH=/usr/local/cuda/bin:${PATH}
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 
 WORKDIR /home
 

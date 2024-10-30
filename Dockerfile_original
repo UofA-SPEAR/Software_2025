@@ -73,6 +73,8 @@ RUN apt-get update && \
     rm zed_sdk_4.1.2_ubuntu22.04.run && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+
+
 # Install other required libraries
 RUN apt-get update && \
     apt-get install -y \
@@ -90,21 +92,6 @@ RUN pip3 install \
     && pip3 install --upgrade \
     setuptools \
     wheel
-
-# NVIDIA Container Toolkit installation
-RUN curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | apt-key add - && \
-    distribution=$(lsb_release -c -s) && \
-    curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | tee /etc/apt/sources.list.d/nvidia-docker.list && \
-    apt-get update && \
-    apt-get install -y nvidia-container-toolkit && \
-    rm -rf /var/lib/apt/lists/*
-
-# Restart Docker (optional, but not necessary inside a container build context)
-# RUN systemctl restart docker
-
-# Set environment variables for CUDA
-ENV PATH=/usr/local/cuda/bin:${PATH}
-ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 
 WORKDIR /home
 
