@@ -12,8 +12,21 @@ Docker simplifies application deployment by using containers, which are isolated
 
 - **Docker Container**: A container is a runnable instance of a Docker image. It is a lightweight, standalone, executable package that includes everything needed to run the application. Containers can be started, stopped, moved, and deleted, making them very flexible and easy to manage.
 
-## Installing Docker Engine
-If you do not have a linux device you will need a virtual machine (VM) such as WSL.
+## Installing Docker Engine For Mac (for non native linux users)
+
+- Go to https://www.docker.com/products/docker-desktop/ and install docker for your operating machine.
+- Double-click Docker.dmg to open the installer, then drag the Docker icon to the Applications folder. By default, Docker Desktop is installed at ```/Applications/Docker.app```
+- Create an account.
+- Follow the instructions on Docker to learn how to run and build a container.
+- Clone the repo you want
+- Navigate to your terminal and then run the code outlined in "Useful Docker Commands"
+
+  If you are encountering this error: ```ERROR: failed to solve: nvidia/cuda:12.6.1-devel-ubuntu22.04: failed to resolve source metadata for docker.io/nvidia/cuda:12.6.1-devel-ubuntu22.04: error getting credentials - err: exit status 1, out: ```
+
+run ```sudo nano ~/.docker/config.json```
+
+and change this ```"credsStore": "Desktop"``` to ```"credsStore": "osxkeychain"```
+
 
 ### Docker on Ubuntu
 
