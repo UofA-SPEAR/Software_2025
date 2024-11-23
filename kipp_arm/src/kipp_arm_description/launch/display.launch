@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Robot State Publisher -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+        <param name="publish_frequency" value="50.0" />
+        <!-- Load the URDF into the ROS Parameter Server -->
+        <param name="robot_description" command="$(find description)/urdf/SPEAR_Arm.urdf" />
+    </node>
+
+    <!-- Joint State Publisher -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="use_gui" value="true"/>
+        <!-- If you have a YAML configuration for the joint states, you can load it here -->
+        <!-- <param name="source_list" value="[source1, source2]" /> -->
+    </node>
+
+    <node name="rviz" pkg="rviz" type="rviz"  />
+</launch>
