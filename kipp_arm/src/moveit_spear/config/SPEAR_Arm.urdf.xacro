@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="SPEAR_Arm">
+    <xacro:arg name="initial_positions_file" default="initial_positions.yaml" />
+
+    <!-- Import SPEAR_Arm urdf file -->
+    <xacro:include filename="$(find description)/urdf/SPEAR_Arm.urdf" />
+
+    <!-- Import control_xacro -->
+    <xacro:include filename="SPEAR_Arm.ros2_control.xacro" />
+
+
+    <xacro:SPEAR_Arm_ros2_control name="FakeSystem" initial_positions_file="$(arg initial_positions_file)"/>
+
+</robot>

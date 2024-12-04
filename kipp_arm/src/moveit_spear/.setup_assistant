@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: description
+    relative_path: urdf/SPEAR_Arm.urdf
+  srdf:
+    relative_path: config/SPEAR_Arm.srdf
+  package_settings:
+    author_name: Induwara Kandapahala
+    author_email: kandapah@ualberta.ca
+    generated_timestamp: 1689723283
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity

@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="SPEAR_Arm">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="3.16799867477683E-17 9.21749145776317E-17 -0.00623708097620095"
+        rpy="0 0 0" />
+      <mass
+        value="0.692524123906466" />
+      <inertia
+        ixx="0.00137416635128141"
+        ixy="-3.33415978209264E-19"
+        ixz="1.38782870903349E-20"
+        iyy="0.00137416635128141"
+        iyz="9.49244932547869E-20"
+        izz="0.0025458973618602" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://description/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 -0.015"
+        rpy="0 0 0" />
+      <geometry>
+        <box size = "0.128 0.128 0.07"/>
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="base_joint">
+    <inertial>
+      <origin
+        xyz="0.0396864881982836 -0.000199483171229487 0.000203916910570974"
+        rpy="0 0 0" />
+      <mass
+        value="1.47738507112296" />
+      <inertia
+        ixx="0.00173644836892209"
+        ixy="5.04000250358313E-06"
+        ixz="-5.50880537488887E-06"
+        iyy="0.00156626480987519"
+        iyz="-0.000250260146305554"
+        izz="0.00161124015763902" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://description/meshes/base_joint.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0.12"
+        rpy="0 0 0" />
+      <geometry>
+        <box size= "0.121 0.11 0.11"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Shoulder Roll"
+    type="continuous">
+    <origin
+      xyz="0 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="base_joint" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+  <link
+    name="link_1">
+    <inertial>
+      <origin
+        xyz="0.0201107904068754 -0.000699793106638869 -0.0571172260543161"
+        rpy="0 0 0" />
+      <mass
+        value="3.44363478464573" />
+      <inertia
+        ixx="0.00845059338877604"
+        ixy="1.52776594858077E-07"
+        ixz="-6.15113949547405E-06"
+        iyy="0.00638861497306379"
+        iyz="5.20507537067759E-08"
+        izz="0.00306734532619655" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://description/meshes/link_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="-0.16 -0.045 0"
+        rpy="0 0 0" />
+      <geometry>
+        <box size= "0.14 0.08 0.055"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Shoulder Pitch"
+    type="revolute">
+    <origin
+      xyz="0 0 0.112"
+      rpy="0 0 0" />
+    <parent
+      link="base_joint" />
+    <child
+      link="link_1" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-1.0472"
+      upper="3.6652"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="link_2">
+    <inertial>
+      <origin
+        xyz="0.00377731865823253 -1.08701091180302E-05 0.000137137871969006"
+        rpy="0 0 0" />
+      <mass
+        value="1.5153745049325" />
+      <inertia
+        ixx="0.00151052573041459"
+        ixy="4.318673973076E-10"
+        ixz="-3.94520702946067E-06"
+        iyy="0.000960514355142274"
+        iyz="-1.18312010616379E-10"
+        izz="0.00129766839873913" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://description/meshes/link_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <box size= "0.1 0.1 0.08"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Elbow Pitch"
+    type="revolute">
+    <origin
+      xyz="-0.34315 -0.0428412022704851 0.000700000000055892"
+      rpy="0 0 0" />
+    <parent
+      link="link_1" />
+    <child
+      link="link_2" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-2.7925"
+      upper="1.9722"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="link_3">
+    <inertial>
+      <origin
+        xyz="0.0654796463911018 -0.000151184620193826 -0.000160482278215801"
+        rpy="0 0 0" />
+      <mass
+        value="2.07375542707273" />
+      <inertia
+        ixx="0.00161468452783234"
+        ixy="1.97123090743411E-06"
+        ixz="-1.57472017298584E-10"
+        iyy="0.00248003537406924"
+        iyz="-2.04818278580273E-07"
+        izz="0.00230876885278511" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://description/meshes/link_3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="-0.17 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <box size= "0.21 0.08 0.084"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Elbow Roll"
+    type="revolute">
+    <origin
+      xyz="0 0.09 0"
+      rpy="0 0 0" />
+    <parent
+      link="link_2" />
+    <child
+      link="link_3" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-3.1416"
+      upper="3.1416"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="link_4">
+    <inertial>
+      <origin
+        xyz="0.0665147333833135 6.57060609399601E-05 -0.00829151281291829"
+        rpy="0 0 0" />
+      <mass
+        value="1.56472201375409" />
+      <inertia
+        ixx="0.00274365868526142"
+        ixy="4.97483377943942E-08"
+        ixz="-1.08082401323012E-06"
+        iyy="0.00236577011230846"
+        iyz="-2.86764704557576E-09"
+        izz="0.00122113820715794" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://description/meshes/link_4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0.085 0"
+        rpy="0 0 0" />
+      <geometry>
+        <box size= "0.16 0.082 0.08"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Wrist Pitch"
+    type="revolute">
+    <origin
+      xyz="-0.25884999894715 -0.00284120227048547 -0.000299999999948689"
+      rpy="0 0 0" />
+    <parent
+      link="link_3" />
+    <child
+      link="link_4" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-2.7576"
+      upper="2.6704"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="link_5">
+    <inertial>
+      <origin
+        xyz="0.70125955361708 -0.00360770807542265 0.00601989780117211"
+        rpy="0 0 0" />
+      <mass
+        value="0.750967399035288" />
+      <inertia
+        ixx="0.000580115693570658"
+        ixy="2.85026358587835E-05"
+        ixz="3.44034905741974E-05"
+        iyy="0.00106973660677863"
+        iyz="1.48522113054278E-05"
+        izz="0.000644136496032607" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0.28 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://description/meshes/link_5.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0.08 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <box size= "0.16 0.08 0.14"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Wrist Roll"
+    type="continuous">
+    <origin
+      xyz="-0.25 0.09 0.00300000000000089"
+      rpy="0 0 0" />
+    <parent
+      link="link_4" />
+    <child
+      link="link_5" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="EEF">
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+          <box size= "0.02 0.02 0.02"/>
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <box size= "0.02 0.02 0.02"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="EEF_Joint"
+    type="fixed">
+    <origin
+      xyz="-0.01 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="link_5" />
+    <child
+      link="EEF"/>
+  </joint>
+
+</robot>

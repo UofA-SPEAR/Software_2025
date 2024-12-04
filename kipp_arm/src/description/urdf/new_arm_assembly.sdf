@@ -1,0 +1,368 @@
+<sdf version='1.10'>
+  <model name='description'>
+    <link name='base_link'>
+      <inertial>
+        <pose>3.1679986747768298e-17 9.2174914577631698e-17 -0.0062370809762009498 0 0 0</pose>
+        <mass>0.692524123906466</mass>
+        <inertia>
+          <ixx>0.00137416635128141</ixx>
+          <ixy>-3.33415978209264e-19</ixy>
+          <ixz>1.3878287090334901e-20</ixz>
+          <iyy>0.00137416635128141</iyy>
+          <iyz>9.4924493254786896e-20</iyz>
+          <izz>0.0025458973618601999</izz>
+        </inertia>
+      </inertial>
+      <collision name='base_link_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/base_link.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='base_link_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/base_link.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.941176474 0.941176474 0.941176474 1</diffuse>
+          <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name='Shoulder Roll' type='revolute'>
+      <pose relative_to='base_link'>0 0 0 0.74076226351047181 -1.5707963267948966 0</pose>
+      <parent>base_link</parent>
+      <child>base_joint</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-inf</lower>
+          <upper>inf</upper>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='base_joint'>
+      <pose relative_to='Shoulder Roll'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0.039686488198283597 -0.000199483171229487 0.00020391691057097401 0 0 0</pose>
+        <mass>1.4773850711229599</mass>
+        <inertia>
+          <ixx>0.00173644836892209</ixx>
+          <ixy>5.04000250358313e-06</ixy>
+          <ixz>-5.5088053748888703e-06</ixz>
+          <iyy>0.0015662648098751901</iyy>
+          <iyz>-0.00025026014630555402</iyz>
+          <izz>0.00161124015763902</izz>
+        </inertia>
+      </inertial>
+      <collision name='base_joint_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/base_joint.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='base_joint_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/base_joint.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.941176474 0.941176474 0.941176474 1</diffuse>
+          <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name='Shoulder Pitch' type='revolute'>
+      <pose relative_to='base_joint'>0.112 0 0 -2.6082547561974978e-17 0.83003406328442386 1.5707963267948797</pose>
+      <parent>base_joint</parent>
+      <child>link_1</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-1.0471999999999999</lower>
+          <upper>3.6652</upper>
+          <effort>0</effort>
+          <velocity>0</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='link_1'>
+      <pose relative_to='Shoulder Pitch'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0.020110790406875401 -0.00069979310663886905 -0.0571172260543161 0 0 0</pose>
+        <mass>3.44363478464573</mass>
+        <inertia>
+          <ixx>0.0084505933887760402</ixx>
+          <ixy>1.5277659485807699e-07</ixy>
+          <ixz>-6.1511394954740497e-06</ixz>
+          <iyy>0.0063886149730637901</iyy>
+          <iyz>5.2050753706775903e-08</iyz>
+          <izz>0.0030673453261965502</izz>
+        </inertia>
+      </inertial>
+      <collision name='link_1_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/link_1.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='link_1_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/link_1.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.941176474 0.941176474 0.941176474 1</diffuse>
+          <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name='Elbow Pitch' type='revolute'>
+      <pose relative_to='link_1'>0.042841202270485101 -0.00070000000005589202 -0.34315000105284998 0 0 -3.1415926535897798</pose>
+      <parent>link_1</parent>
+      <child>link_2</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-2.7925</lower>
+          <upper>1.9722</upper>
+          <effort>0</effort>
+          <velocity>0</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='link_2'>
+      <pose relative_to='Elbow Pitch'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0.0037773186582325301 -1.08701091180302e-05 0.00013713787196900599 0 0 0</pose>
+        <mass>1.5153745049325</mass>
+        <inertia>
+          <ixx>0.0015105257304145899</ixx>
+          <ixy>4.3186739730759998e-10</ixy>
+          <ixz>-3.9452070294606698e-06</ixz>
+          <iyy>0.00096051435514227397</iyy>
+          <iyz>-1.18312010616379e-10</iyz>
+          <izz>0.0012976683987391299</izz>
+        </inertia>
+      </inertial>
+      <collision name='link_2_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/link_2.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='link_2_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/link_2.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.941176474 0.941176474 0.941176474 1</diffuse>
+          <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name='Elbow Roll' type='revolute'>
+      <pose relative_to='link_2'>0.089999999999999997 0 0 1.5707963267949003 1.5707963267948966 0</pose>
+      <parent>link_2</parent>
+      <child>link_3</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <lower>-3.1415999999999999</lower>
+          <upper>3.1415999999999999</upper>
+          <effort>0</effort>
+          <velocity>0</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='link_3'>
+      <pose relative_to='Elbow Roll'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0.065479646391101806 -0.00015118462019382599 -0.000160482278215801 0 0 0</pose>
+        <mass>2.0737554270727299</mass>
+        <inertia>
+          <ixx>0.00161468452783234</ixx>
+          <ixy>1.9712309074341102e-06</ixy>
+          <ixz>-1.5747201729858399e-10</ixz>
+          <iyy>0.0024800353740692398</iyy>
+          <iyz>-2.04818278580273e-07</iyz>
+          <izz>0.00230876885278511</izz>
+        </inertia>
+      </inertial>
+      <collision name='link_3_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/link_3.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='link_3_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/link_3.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.941176474 0.941176474 0.941176474 1</diffuse>
+          <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name='Wrist Pitch' type='revolute'>
+      <pose relative_to='link_3'>0.25884999894715 -0.0028412022704854701 0.00029999999994868902 -1.5707963267949201 -5.5511151231307192e-17 1.5707963267949003</pose>
+      <parent>link_3</parent>
+      <child>link_4</child>
+      <axis>
+        <xyz>-1 0 0</xyz>
+        <limit>
+          <lower>-2.7576000000000001</lower>
+          <upper>2.6703999999999999</upper>
+          <effort>0</effort>
+          <velocity>0</velocity>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='link_4'>
+      <pose relative_to='Wrist Pitch'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0.066514733383313498 6.5706060939960107e-05 -0.0082915128129182909 0 0 0</pose>
+        <mass>1.56472201375409</mass>
+        <inertia>
+          <ixx>0.00274365868526142</ixx>
+          <ixy>4.9748337794394199e-08</ixy>
+          <ixz>-1.0808240132301201e-06</ixz>
+          <iyy>0.00236577011230846</iyy>
+          <iyz>-2.86764704557576e-09</iyz>
+          <izz>0.00122113820715794</izz>
+        </inertia>
+      </inertial>
+      <collision name='link_4_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/link_4.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='link_4_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/link_4.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.941176474 0.941176474 0.941176474 1</diffuse>
+          <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
+        </material>
+      </visual>
+    </link>
+    <joint name='Wrist Roll' type='revolute'>
+      <pose relative_to='link_4'>0.089999999999999997 0.00300000000000089 0.002 1.5707963267948899 1.5707963267948966 0</pose>
+      <parent>link_4</parent>
+      <child>link_5</child>
+      <axis>
+        <xyz>1 0 0</xyz>
+        <limit>
+          <effort>0</effort>
+          <velocity>0</velocity>
+          <lower>-inf</lower>
+          <upper>inf</upper>
+        </limit>
+        <dynamics>
+          <spring_reference>0</spring_reference>
+          <spring_stiffness>0</spring_stiffness>
+        </dynamics>
+      </axis>
+    </joint>
+    <link name='link_5'>
+      <pose relative_to='Wrist Roll'>0 0 0 0 0 0</pose>
+      <inertial>
+        <pose>0.17012595536170799 -0.0036077080754226502 0.0060198978011721102 0 0 0</pose>
+        <mass>0.75096739903528797</mass>
+        <inertia>
+          <ixx>0.00058011569357065802</ixx>
+          <ixy>2.8502635858783499e-05</ixy>
+          <ixz>3.4403490574197397e-05</ixz>
+          <iyy>0.0010697366067786299</iyy>
+          <iyz>1.48522113054278e-05</iyz>
+          <izz>0.00064413649603260704</izz>
+        </inertia>
+      </inertial>
+      <collision name='link_5_collision'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/link_5.STL</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name='link_5_visual'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <scale>1 1 1</scale>
+            <uri>file:///home/indy03/Desktop/Software_2023/src/description/meshes/link_5.STL</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <diffuse>0.941176474 0.941176474 0.941176474 1</diffuse>
+          <ambient>0.941176474 0.941176474 0.941176474 1</ambient>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

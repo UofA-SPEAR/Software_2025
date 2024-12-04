@@ -1,0 +1,9 @@
+# Default initial positions for SPEAR_Arm's ros2_control fake system
+
+initial_positions:
+  Elbow Pitch: 0
+  Elbow Roll: 0
+  Shoulder Pitch: 0
+  Shoulder Roll: 0
+  Wrist Pitch: 0
+  Wrist Roll: 0
