@@ -50,3 +50,6 @@ _Short summary of the task._
 
 ### Copying Code
 Always reference non-original code to prevent plagiarism and assist other contributors.  
+
+### Documentation
+Always, after implementing a major change in the rover's functionality or operation, create or update the corresponding `.md` file in the documentation folder. This file should explain how to operate the new feature and provide details on what commands to run.
