@@ -21,3 +21,7 @@
 ```ros2 service call /arm_servo/start_servo std_srvs/srv/Trigger {}```
 
 
+
+Refer to this for control mapping: https://drive.google.com/file/d/1n3aWn4sJ1-WZIfTOjwfjbIYzQQzIuocr/view?usp=drive_link
+
+
