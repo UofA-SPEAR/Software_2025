@@ -28,6 +28,7 @@ __pycache__/
 # Ignore other common directories that should not be part of the repository
 .development/
 
-Dockerfile*
-!Dockerfile.main
+Dockerfile.apple
+!Dockerfile
+
 
