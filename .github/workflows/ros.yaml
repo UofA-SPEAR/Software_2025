@@ -20,8 +20,8 @@ jobs:
       # Step 2: Install Docker
       - name: Install Docker
         run: |
-          apt-get update
-          apt-get install -y docker.io
+          sudo apt-get update
+          sudo apt-get install -y docker.io
 
       # Step 3: Build the Software_2025 workspace in a clean Docker container
       - name: Build Software_2025 workspace
