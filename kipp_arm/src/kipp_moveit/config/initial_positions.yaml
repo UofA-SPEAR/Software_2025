@@ -1,9 +1,0 @@
-# Default initial positions for kipps_arm's ros2_control fake system
-
-initial_positions:
-  base_joint: 0
-  eef_joint: 0
-  link1_joint: 0
-  link2_joint: 0
-  link3_joint: 0
-  link4_joint: 0
