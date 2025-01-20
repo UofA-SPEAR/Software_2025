@@ -36,11 +36,11 @@
 
       ## MoveIt properties
 
-      move_group_name: Arm_Group # Often 'manipulator' or 'arm'
+      move_group_name: arm # Often 'manipulator' or 'arm'
       planning_frame: base_link  # The MoveIt planning frame. Often 'base_link' or 'world'
 
       ## Other frames
-      ee_frame_name: EEF  # The name of the end effector link, used to return the EE pose
+      ee_frame_name: end_effector # The name of the end effector link, used to return the EE pose
       robot_link_command_frame:  base_link  # commands must be given in the frame of a robot link. Usually either the base or end effector
 
       ## Stopping behaviour
@@ -53,8 +53,8 @@
       leaving_singularity_threshold_multiplier: 2.0 # Multiply the hard stop limit by this when leaving singularity (see https://github.com/ros-planning/moveit2/pull/620)
 
       ## Topic names
-      cartesian_command_in_topic: /SPEAR_Arm/delta_twist_cmds  # Topic for incoming Cartesian twist commands  FROM CONTROLLER
-      joint_command_in_topic: /SPEAR_Arm/delta_joint_cmds # Topic for incoming joint angle commands  FROM CONTROLLER
+      cartesian_command_in_topic: /kipps_arm/delta_twist_cmds  # Topic for incoming Cartesian twist commands  FROM CONTROLLER
+      joint_command_in_topic: /kipps_Arm/delta_joint_cmds # Topic for incoming joint angle commands  FROM CONTROLLER
       joint_topic: /joint_states  
       status_topic: ~/status # Publish status to this topic
       command_out_topic: /Arm_Group_controller/joint_trajectory # Publish outgoing commands here

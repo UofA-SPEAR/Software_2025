@@ -34,6 +34,7 @@
         <joint name="link3_joint" value="0"/>
         <joint name="link4_joint" value="1.6805"/>
     </group_state>
+
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="end_effector" parent_link="link5" group="arm" parent_group="arm"/>
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->

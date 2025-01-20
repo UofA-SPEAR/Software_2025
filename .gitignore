@@ -2,6 +2,7 @@
 build/
 install/
 log/
+bin/
 
 # Ignore package-specific build directories
 build_isolated/

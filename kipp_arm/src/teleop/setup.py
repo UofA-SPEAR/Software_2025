@@ -12,7 +12,6 @@ setup(
         ('share/' + package_name, ['package.xml']),
         
         ('share/' + package_name, ['launch/teleop.launch.py']),
-        ('share/' + package_name, ['launch/keyboard.launch.py']),
         
 
     ],
@@ -26,12 +25,12 @@ setup(
     entry_points={
         'console_scripts': [
             'Rover_Control_Node = teleop.Rover_control:main',
-            'SPEAR_Arm_Node = teleop.Joystick_Arm:main',
+            'SPEAR_Arm_Node_og = teleop.Joystick_Arm:main',
+            'SPEAR_Arm_Node = teleop.moded_joy_arm:main',
             'Joystick_Input = teleop.Joy_Input:main',
             'Rover_New_Control = teleop.Rover_control:main',
             'Gripper_Control = teleop.Gripper:main',
-            'k_input = teleop.keyboard_input:main',
-            'k_arm = teleop.keyboard_arm:main',
+            'sim_node = teleop.sim:main',
         ],
     },
 )
