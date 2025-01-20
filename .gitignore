@@ -22,6 +22,9 @@ __pycache__/
 # Ignore all text files that might be generated
 *.txt
 
+# But not the CMakeLists.txt files 
+!CMakeLists.txt
+
 # Ignore IDE specific files
 .vscode/
 .idea/
