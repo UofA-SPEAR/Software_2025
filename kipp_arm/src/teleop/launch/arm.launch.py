@@ -3,22 +3,21 @@ from launch_ros.actions import Node
 from launch.substitutions import LaunchConfiguration
 import os
 from ament_index_python.packages import get_package_share_directory
-from launch.actions import TimerAction, DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler
+from launch.event_handlers import OnProcessStart
 from moveit_configs_utils import MoveItConfigsBuilder
 from moveit_configs_utils.launches import generate_demo_launch
-import subprocess
+from launch import LaunchDescription
+from launch.actions import ExecuteProcess
 
 
 def generate_launch_description():
     
     param_file = os.path.join(get_package_share_directory("moveit_spear"), "config", "moveit_servo_config.yaml")
 
-    joystick_conv = TimerAction(
-        period=3.0,
-        actions=[Node(
-            package='teleop',
-            executable='SPEAR_Arm_Node',
-        )]
+    joystick_conv = Node(
+        package='teleop',
+        executable='SPEAR_Arm_Node',
     )
 
     joy_input = Node(
@@ -44,17 +43,19 @@ def generate_launch_description():
         output='screen',
     )
 
+
+    # Modified ExecuteProcess part
+    execute_process = ExecuteProcess(
+        cmd=['kipp_arm/src/teleop/launch/service.sh'],
+        output='screen'
+    )
+
     # Initialize the LaunchDescription object
     ld = LaunchDescription()
     ld.add_action(joy_input)
     ld.add_action(joystick_conv)
     ld.add_action(demo_launch)  # Adding the demo launch, which sets up RViz
     ld.add_action(servo_node)
-
-    # Call the ROS2 service to start the servo
-    try:
-        subprocess.run(['ros2', 'service', 'call', '/arm_servo/start_servo', 'std_srvs/srv/Trigger', '{}'], check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Service call failed: {e}")
+    ld.add_action(execute_process)  # Adding the execute process action
 
     return ld
