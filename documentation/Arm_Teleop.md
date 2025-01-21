@@ -25,7 +25,11 @@ source install/setup.bash
 ```
 ros2 launch teleop arm.teleop.py
 ```
-
+If experiencing an erorr this coulde be due to permission being denied in the shell script. run: 
+```
+chmod +x kipp_arm/src/teleop/launch/service.sh
+```
+in Software_2025
 
 
 
