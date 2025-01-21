@@ -124,10 +124,10 @@ class Arm_Control(Node):
             eef_open_msg.data = self.joystick_msg.axes[RIGHT_BUMPER]
             self.publisher_.publish(eef_open_msg)
 
-        if self.joystick_msg.buttons[RIGHT_TRIGGER]:
+        if self.joystick_msg.buttons[LEFT_BUMPER]:
             i += 1
             eef_close_msg = Float32()
-            eef_close_msg.data = -self.joystick_msg.axes[RIGHT_TRIGGER]
+            eef_close_msg.data = -self.joystick_msg.axes[LEFT_BUMPER]
             self.publisher_.publish(eef_close_msg)
 
         if i > 0:
@@ -145,9 +145,10 @@ class Arm_Control(Node):
         self.twist_msg.header.stamp = self.get_clock().now().to_msg()
         self.twist_msg.header.frame_id = "base_link"
 
-        lin_x_left_bumper = (self.joystick_msg.buttons[LEFT_BUMPER])
-        lin_x_left_trigger = -0.5 * (self.joystick_msg.axes[LEFT_TRIGGER]+1)
-        lin_x = lin_x_left_bumper + lin_x_left_trigger
+        lin_x_right_trigger = -0.5 * (self.joystick_msg.axes[RIGHT_TRIGGER]+1)
+        self.get_logger().info(f"RIGHT {lin_x_right_trigger}")
+        lin_x_left_trigger = 0.5 * (self.joystick_msg.axes[LEFT_TRIGGER]+1)
+        lin_x = lin_x_right_trigger + lin_x_left_trigger
 
         if abs(lin_x) > deadband_threshold or abs(self.joystick_msg.axes[LEFT_STICK_Y]) > deadband_threshold or abs(self.joystick_msg.axes[LEFT_STICK_X]) > deadband_threshold:
             self.twist_msg.twist.linear.z = -self.joystick_msg.axes[LEFT_STICK_Y]
@@ -172,6 +173,8 @@ class Arm_Control(Node):
 
     def JoystickMsg(self, msg):
         self.joystick_msg = msg
+        self.get_logger().info(f"Joystick Axes Values: {msg.axes}")
+        self.get_logger().info(f"Joystick Button Values: {msg.buttons}")
 
 def main(args=None):
     rclpy.init(args=args)
