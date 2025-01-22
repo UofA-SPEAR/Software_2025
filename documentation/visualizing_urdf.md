@@ -1,27 +1,11 @@
-## Install ZED SDK and CLONE Ros2 Wrapper 
+## Install ZED SDK and Clone Ros2 Wrapper 
 place ros2 wrapper inside the rover/src directory
 
 replace this file contents: ```/Software_2025/rover/src/zed-ros2-wrapper/zed_wrapper/urdf/zed_macro.urdf.xacro```
 
-with this ```
+with this 
+```<?xml version="1.0"?>
 <?xml version="1.0"?>
-
-<!--
-// Copyright 2022 Stereolabs
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
--->
-
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
   <xacro:include filename="$(find zed_wrapper)/urdf/include/materials.urdf.xacro" />
   <xacro:property name="M_PI"     value="3.1415926535897931" />
@@ -207,4 +191,17 @@ with this ```
 
   </xacro:macro>
 </robot>
+```
+
+then to run: 
+```
+colcon build
+```
+
+```
+source install/setup.bash
+```
+
+```
+ros2 launch kipp_description kipp_state.launch.py
 ```
