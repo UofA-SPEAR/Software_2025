@@ -1,0 +1,228 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kipp">
+<xacro:include filename="$(find zed_wrapper)/urdf/zed_macro.urdf.xacro"/>
+       
+   
+   <link name="base_link">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <box size= "0.8 0.5 0.5"/>
+            </geometry>
+        </visual>
+   </link>
+
+   <link name="front_left_steering">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="0.1 0.1 0.1"/>
+            </geometry>
+        </visual>
+   </link>
+
+   <link name="front_right_steering">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="0.1 0.1 0.1"/>
+            </geometry>
+        </visual>
+   </link>
+
+   <link name="back_left_steering">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="0.1 0.1 0.1"/>
+            </geometry>
+        </visual>
+   </link>
+
+   <link name="back_right_steering">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="0.1 0.1 0.1"/>
+            </geometry>
+        </visual>
+   </link>
+
+   <joint name="front_left_steering_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="front_left_steering"/>
+    <axis xyz="0 0 1"/>
+    <origin xyz="0.4 0.25 -0.25" rpy="0 0 0"/>
+    <limit lower="-1.57" upper="1.57" effort="0.0" velocity="0.0"/>
+    
+   </joint>
+
+   <joint name="front_right_steering_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="front_right_steering"/>
+    <axis xyz="0 0 1"/>
+    <origin xyz="0.4 -0.25 -0.25" rpy="0 0 0"/>
+    <limit lower="-1.57" upper="1.57" effort="0.0" velocity="0.0"/>
+    
+   </joint>
+
+   <joint name="back_left_steering_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="back_left_steering"/>
+    <axis xyz="0 0 1"/>
+    <origin xyz="-0.4 0.25 -0.25" rpy="0 0 0"/>
+    <limit lower="-1.57" upper="1.57" effort="0.0" velocity="0.0"/>
+    
+   </joint>
+
+   <joint name="back_right_steering_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="back_right_steering"/>
+    <axis xyz="0 0 1"/>
+    <origin xyz="-0.4 -0.25 -0.25" rpy="0 0 0"/>
+    <limit lower="-1.57" upper="1.57" effort="0.0" velocity="0.0"/>
+    
+   </joint>
+
+    <link name="front_left_wheel">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="0.1" length="0.05"/>
+            </geometry>
+        </visual>
+   </link>
+
+       <link name="front_right_wheel">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="0.1" length="0.05"/>
+            </geometry>
+        </visual>
+   </link>
+
+       <link name="middle_left_wheel">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="0.1" length="0.05"/>
+            </geometry>
+        </visual>
+   </link>
+       <link name="middle_right_wheel">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="0.1" length="0.05"/>
+            </geometry>
+        </visual>
+   </link>
+       <link name="back_left_wheel">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="0.1" length="0.05"/>
+            </geometry>
+        </visual>
+   </link>
+       <link name="back_right_wheel">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="0.1" length="0.05"/>
+            </geometry>
+        </visual>
+   </link>
+
+    <joint name="front_left_wheel_joint" type="continuous">
+        <parent link="front_left_steering"/>
+        <child link="front_left_wheel"/>
+        <axis xyz="0 0 1"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="front_right_wheel_joint" type="continuous">
+        <parent link="front_right_steering"/>
+        <child link="front_right_wheel"/>
+        <axis xyz="0 0 1"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="middle_left_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="middle_left_wheel"/>
+        <axis xyz="0 0 1"/>
+        <origin xyz="0 -0.25 -0.25" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="middle_right_wheel_joint_" type="continuous">
+        <parent link="base_link"/>
+        <child link="middle_right_wheel"/>
+        <axis xyz="0 0 1"/>
+        <origin xyz="0 0.25 -0.25" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="back_left_wheel_joint" type="continuous">
+        <parent link="back_left_steering"/>
+        <child link="back_left_wheel"/>
+        <axis xyz="0 0 1"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="back_right_wheel_joint" type="continuous">
+        <parent link="back_right_steering"/>
+        <child link="back_right_wheel"/>
+        <axis xyz="0 0 1"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+   <!--Camera Addtion-->
+
+   <xacro:arg name="camera_name"   default="zed2i" />
+  <xacro:arg name="camera_model"  default="zed2i" />
+  <xacro:arg name="use_zed_localization" default="true" />
+
+    <xacro:zed_camera name="$(arg camera_name)" model="$(arg camera_model)" />
+
+     <!-- Add the first ZED Camera -->  
+      <xacro:if value="$(arg use_zed_localization)">
+    <!-- ZED Localization -> The reference link is '$(arg camera_name)_camera_link' and 'base_link' is a child -->
+    <joint name="$(arg camera_name)_joint" type="fixed">
+      <parent link="$(arg camera_name)_camera_link"/>
+      <child link="base_link"/>
+      <origin
+        xyz="-0.12 0.0 -0.25"
+        rpy="0 0 0"
+      />
+    </joint>
+  </xacro:if>
+  <xacro:unless value="$(arg use_zed_localization)">
+    <!-- NO ZED Localization -> '$(arg camera_name)_camera_link' is a child of 'base_link' -->
+    <joint name="$(arg camera_name)_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="$(arg camera_name)_camera_link"/>
+      <origin
+        xyz="0.12 0.0 0.25"
+        rpy="0 0 0"
+      />
+    </joint>
+  </xacro:unless>
+
+
+  <link name="gnss_link">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="0.05" length="0.05"/>
+            </geometry>
+        </visual>
+   </link>
+
+    <joint name="gnss_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="gnss_link"/>
+        <origin xyz="0 0 0.70" rpy="0 0 0"/>
+    </joint>
+
+</robot>
