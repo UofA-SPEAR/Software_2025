@@ -1,88 +1,86 @@
 <?xml version="1.0"?>
+
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kipp">
 <xacro:include filename="$(find zed_wrapper)/urdf/zed_macro.urdf.xacro"/>
+
+<!-- Robot constants-->
+<xacro:property name="base_width" value = ""/>
+<xacro:property name="base_height" value = ""/>
+<xacro:property name="base_length" value = ""/>
+
+<xacro:property name="steering_xy" value=""/>
+<xacro:property name="steering_z" value=""/>
+
+<xacro:property name="wheel_radius" value = ""/>
+
+<xacro:property name="camera_y" value = ""/>
+<xacro:property name="camera_z" value = ""/>
+
+<xacro:propery name="gnss_x" value=""/>
+<xacro:propery name="gnss_y" value=""/>
+<xacro:propery name="gnss_z" value=""/>
+
+<xacro:propery name="footprint" value="${-((base_height/2)+wheel_radius)}"/>
+
        
-   
+    <!-- Robot Base -->
    <link name="base_link">
         <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
             <geometry>
-                <box size= "0.8 0.5 0.5"/>
+                <box size="${base_length} ${base_width} ${base_height}"/>
             </geometry>
+            <material name="rover_material">
+                <color rgba="0.5 0.5 0.5 1.0" />
+            </material>
         </visual>
-   </link>
+    </link>
 
-   <link name="front_left_steering">
-        <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-            <geometry>
-                <box size="0.1 0.1 0.1"/>
-            </geometry>
-        </visual>
-   </link>
 
-   <link name="front_right_steering">
-        <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-            <geometry>
-                <box size="0.1 0.1 0.1"/>
-            </geometry>
-        </visual>
-   </link>
+    <!-- Robot Footprint -->
+    <link name="base_footprint"/>
 
-   <link name="back_left_steering">
-        <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-            <geometry>
-                <box size="0.1 0.1 0.1"/>
-            </geometry>
-        </visual>
-   </link>
+    <joint name="base_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="base_footprint"/>
+        <origin xyz="0.0 0.0 ${footprint}" rpy="0 0 0"/>
+    </joint>
 
-   <link name="back_right_steering">
-        <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-            <geometry>
-                <box size="0.1 0.1 0.1"/>
-            </geometry>
-        </visual>
-   </link>
+    <!-- Steering --> 
+    <xacro:macro name="steering" params="prefix x_reflect y_reflect">
+        <link name="${prefix}_steering_link">
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <geometry>
+                    <box size="${steering_xy} ${steering_xy} ${steering_z}"/>
+                </geometry>
+                <material name="Gray">
+                    <color rgba="0.5 0.5 0.5 1.0"/>
+                </material>
+            </visual>
+        </link>
 
-   <joint name="front_left_steering_joint" type="revolute">
-    <parent link="base_link"/>
-    <child link="front_left_steering"/>
-    <axis xyz="0 0 1"/>
-    <origin xyz="0.4 0.25 -0.25" rpy="0 0 0"/>
-    <limit lower="-1.57" upper="1.57" effort="0.0" velocity="0.0"/>
-    
-   </joint>
+        <joint name="${prefix}_steering_joint" type="revolute">
+            <parent link="base_link"/>
+            <child link="${prefix}_steering_link"/>
+            <axis xyz="0 0 1"/>
+            <origin xyz="${(x_reflect*base_length)/2} ${(y_reflect*base_width)/2} ${footprint+wheel_radius}" rpy="0 0 0"/>
+        </joint>
+    </xacro:macro>
 
-   <joint name="front_right_steering_joint" type="revolute">
-    <parent link="base_link"/>
-    <child link="front_right_steering"/>
-    <axis xyz="0 0 1"/>
-    <origin xyz="0.4 -0.25 -0.25" rpy="0 0 0"/>
-    <limit lower="-1.57" upper="1.57" effort="0.0" velocity="0.0"/>
-    
-   </joint>
+    <xacro:steering prefix="front_left" x_reflect="1" y_reflect="1"/>
+    <xacro:steering prefix="front_right" x_reflect="1" y_reflect="-1"/>
+    <xacro:steering prefix="back_left" x_reflect="-1" y_reflect="1"/>
+    <xacro:steering prefix="front_right" x_reflect="-1" y_reflect="-1"/>
 
-   <joint name="back_left_steering_joint" type="revolute">
-    <parent link="base_link"/>
-    <child link="back_left_steering"/>
-    <axis xyz="0 0 1"/>
-    <origin xyz="-0.4 0.25 -0.25" rpy="0 0 0"/>
-    <limit lower="-1.57" upper="1.57" effort="0.0" velocity="0.0"/>
-    
-   </joint>
 
-   <joint name="back_right_steering_joint" type="revolute">
-    <parent link="base_link"/>
-    <child link="back_right_steering"/>
-    <axis xyz="0 0 1"/>
-    <origin xyz="-0.4 -0.25 -0.25" rpy="0 0 0"/>
-    <limit lower="-1.57" upper="1.57" effort="0.0" velocity="0.0"/>
-    
-   </joint>
+<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
+<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
+<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
+<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
+<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
+<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
+<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
+<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
 
     <link name="front_left_wheel">
         <visual>
