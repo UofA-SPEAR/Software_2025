@@ -4,23 +4,26 @@
 <xacro:include filename="$(find zed_wrapper)/urdf/zed_macro.urdf.xacro"/>
 
 <!-- Robot constants-->
-<xacro:property name="base_width" value = ""/>
-<xacro:property name="base_height" value = ""/>
-<xacro:property name="base_length" value = ""/>
+<xacro:property name="base_width" value= "0.5084"/>
+<xacro:property name="base_height" value="0.51"/>
+<xacro:property name="base_length" value="0.77975"/>
 
-<xacro:property name="steering_xy" value=""/>
-<xacro:property name="steering_z" value=""/>
+<xacro:property name="steering_xy" value="0.06155"/>
+<xacro:property name="steering_z" value="0.23"/>
 
-<xacro:property name="wheel_radius" value = ""/>
+<xacro:property name="wheel_radius" value="0.0909"/>
+<xacro:property name="wheel_width" value="0.1016"/>
 
-<xacro:property name="camera_y" value = ""/>
-<xacro:property name="camera_z" value = ""/>
+<xacro:property name="camera_y" value=""/>
+<xacro:property name="camera_z" value=""/>
 
-<xacro:propery name="gnss_x" value=""/>
-<xacro:propery name="gnss_y" value=""/>
-<xacro:propery name="gnss_z" value=""/>
+<xacro:property name="gnss_x" value=""/>
+<xacro:property name="gnss_y" value=""/>
+<xacro:property name="gnss_z" value=""/>
 
-<xacro:propery name="footprint" value="${-((base_height/2)+wheel_radius)}"/>
+<xacro:property name="PI" value="3.1415692"/>
+
+<xacro:property name="footprint" value="${-((base_height/2)+(wheel_radius))}"/>
 
        
     <!-- Robot Base -->
@@ -42,7 +45,7 @@
     <joint name="base_joint" type="fixed">
         <parent link="base_link"/>
         <child link="base_footprint"/>
-        <origin xyz="0.0 0.0 ${footprint}" rpy="0 0 0"/>
+        <origin xyz="0.0 0.0 ${footprint-wheel_radius}" rpy="0 0 0"/>
     </joint>
 
     <!-- Steering --> 
@@ -63,117 +66,85 @@
             <parent link="base_link"/>
             <child link="${prefix}_steering_link"/>
             <axis xyz="0 0 1"/>
-            <origin xyz="${(x_reflect*base_length)/2} ${(y_reflect*base_width)/2} ${footprint+wheel_radius}" rpy="0 0 0"/>
+            <origin xyz="${(x_reflect*base_length)/2} ${(y_reflect*base_width)/2} ${(footprint+wheel_radius)}" rpy="0 0 0"/>
+            <limit lower="${-(PI/2)}" upper="${(PI/2)}" effort="0.0" velocity="0.0"/>
         </joint>
     </xacro:macro>
 
     <xacro:steering prefix="front_left" x_reflect="1" y_reflect="1"/>
     <xacro:steering prefix="front_right" x_reflect="1" y_reflect="-1"/>
     <xacro:steering prefix="back_left" x_reflect="-1" y_reflect="1"/>
-    <xacro:steering prefix="front_right" x_reflect="-1" y_reflect="-1"/>
+    <xacro:steering prefix="back_right" x_reflect="-1" y_reflect="-1"/>
 
 
-<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
-<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
-<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
-<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
-<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
-<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
-<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
-<!-- I GOT TO HERE - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - -->
+    <!-- Edge Wheels -->
+    <xacro:macro name="edge_wheel" params="prefix x_reflect y_reflect">
+        <link name="${prefix}_wheel_link">
+            <visual>
+                <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+                </geometry>
+                <material name="black">
+                    <color rgba="0.0 0.0 0.0 1.0"/>
+                </material>
+            </visual>
+        </link>
 
-    <link name="front_left_wheel">
+        <joint name="${prefix}_wheel_joint" type="continuous">
+            <parent link="base_link"/>
+            <child link="${prefix}_wheel_link"/>
+            <origin xyz="${(x_reflect*base_length)/2} ${(y_reflect*base_width)/2} ${footprint}" rpy="0 0 0"/>
+            <axis xyz="0 0 1"/>
+        </joint>
+    </xacro:macro>
+
+    <xacro:edge_wheel prefix="front_left" x_reflect="1" y_reflect="1"/>
+    <xacro:edge_wheel prefix="front_right" x_reflect="1" y_reflect="-1"/>
+    <xacro:edge_wheel prefix="back_left" x_reflect="-1" y_reflect="1"/>
+    <xacro:edge_wheel prefix="back_right" x_reflect="-1" y_reflect="-1"/>
+
+    <!-- Middle Left Wheel -->
+    <link name="middle_left_wheel_link">
         <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
             <geometry>
-                <cylinder radius="0.1" length="0.05"/>
+                <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
             </geometry>
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1.0"/>
+            </material>
         </visual>
-   </link>
-
-       <link name="front_right_wheel">
-        <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
-            <geometry>
-                <cylinder radius="0.1" length="0.05"/>
-            </geometry>
-        </visual>
-   </link>
-
-       <link name="middle_left_wheel">
-        <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
-            <geometry>
-                <cylinder radius="0.1" length="0.05"/>
-            </geometry>
-        </visual>
-   </link>
-       <link name="middle_right_wheel">
-        <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
-            <geometry>
-                <cylinder radius="0.1" length="0.05"/>
-            </geometry>
-        </visual>
-   </link>
-       <link name="back_left_wheel">
-        <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
-            <geometry>
-                <cylinder radius="0.1" length="0.05"/>
-            </geometry>
-        </visual>
-   </link>
-       <link name="back_right_wheel">
-        <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
-            <geometry>
-                <cylinder radius="0.1" length="0.05"/>
-            </geometry>
-        </visual>
-   </link>
-
-    <joint name="front_left_wheel_joint" type="continuous">
-        <parent link="front_left_steering"/>
-        <child link="front_left_wheel"/>
-        <axis xyz="0 0 1"/>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint>
-
-    <joint name="front_right_wheel_joint" type="continuous">
-        <parent link="front_right_steering"/>
-        <child link="front_right_wheel"/>
-        <axis xyz="0 0 1"/>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint>
+    </link>
 
     <joint name="middle_left_wheel_joint" type="continuous">
         <parent link="base_link"/>
-        <child link="middle_left_wheel"/>
+        <child link="middle_left_wheel_link"/>
+        <origin xyz="0 ${(base_width)/2} ${footprint}" rpy="0 0 0"/>
         <axis xyz="0 0 1"/>
-        <origin xyz="0 -0.25 -0.25" rpy="0 0 0"/>
     </joint>
 
-    <joint name="middle_right_wheel_joint_" type="continuous">
+
+    <!-- Middle Right Wheel -->
+    <link name="middle_right_wheel_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+            </geometry>
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1.0"/>
+            </material>
+        </visual>
+    </link>
+
+    <joint name="middle_right_wheel_joint" type="continuous">
         <parent link="base_link"/>
-        <child link="middle_right_wheel"/>
+        <child link="middle_right_wheel_link"/>
+        <origin xyz="0 ${-(base_width)/2} ${footprint}" rpy="0 0 0"/>
         <axis xyz="0 0 1"/>
-        <origin xyz="0 0.25 -0.25" rpy="0 0 0"/>
     </joint>
 
-    <joint name="back_left_wheel_joint" type="continuous">
-        <parent link="back_left_steering"/>
-        <child link="back_left_wheel"/>
-        <axis xyz="0 0 1"/>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint>
-
-    <joint name="back_right_wheel_joint" type="continuous">
-        <parent link="back_right_steering"/>
-        <child link="back_right_wheel"/>
-        <axis xyz="0 0 1"/>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint>
 
    <!--Camera Addtion-->
 
