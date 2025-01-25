@@ -4,6 +4,11 @@ import "./App.css";
 const App = () => {
   return (
     <div className="app-container">
+      <div className="logo-section">
+        <img src={require('./assets/images/logo.png')} alt="Logo" className="logo" />
+        <h1 className="title">SPEAR DASHBOARD</h1>
+      </div>
+
 
       <div className="section initial">
         <div className="button">Initialize Arm</div>

@@ -12,14 +12,14 @@ body {
 .section {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 .section.initial {
   background-color: grey;
   padding: 20px;
   border-radius: 10px;
-  margin: 10px 0;
+  margin: 30px 10px;
   position: sticky; 
   top: 10; /* Defines how far from the top it should stick */
   z-index: 1000; /* Ensures it stays above other elements if needed */
@@ -71,4 +71,30 @@ body {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
+}
+
+.logo-section {
+  position: fixed; /* Sticks to the top of the page */
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 2px solid #ccc; /* Adds separation */
+  z-index: 1000; /* Ensures it stays above other elements */
+}
+
+.logo {
+  height: 50px; /* Adjust the logo size */
+  width: auto;
+}
+
+.title {
+  color: white;          /* Sets the font color to white */
+  font-size: 30px;       /* Sets the font size to 30px */
+  font-weight: bold;     /* Makes the text bold */
+  margin-left: 15px;     /* Adds a little spacing between the logo and title */
 }
