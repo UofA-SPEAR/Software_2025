@@ -23,7 +23,7 @@ source install/setup.bash
 ### Short Way
 
 ```
-ros2 launch teleop arm.teleop.py
+ros2 launch teleop arm.launch.py
 ```
 
 
