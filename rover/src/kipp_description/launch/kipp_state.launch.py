@@ -38,8 +38,11 @@ def generate_launch_description():
                                             description='Absolute path to robot urdf file'),
         launch.actions.DeclareLaunchArgument(name='rvizconfig', default_value=default_rviz_config_path,
                                             description='Absolute path to rviz config file'),
+        launch.actions.DeclareLaunchArgument(name='gui', 
+                                            default_value='true',  # or 'false' if you want it disabled by default
+                                            description='Set to "true" to launch the joint state publisher GUI'),
         joint_state_publisher_node,
-        #joint_state_publisher_gui_node,
+        joint_state_publisher_gui_node,
         robot_state_publisher_node,
         rviz_node
     ])
