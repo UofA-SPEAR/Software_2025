@@ -4,26 +4,38 @@
 <xacro:include filename="$(find zed_wrapper)/urdf/zed_macro.urdf.xacro"/>
 
 <!-- Robot constants-->
+
 <xacro:property name="base_width" value= "0.5084"/>
 <xacro:property name="base_height" value="0.51"/>
 <xacro:property name="base_length" value="0.77975"/>
 
-<xacro:property name="steering_xy" value="0.06155"/>
-<xacro:property name="steering_z" value="0.23"/>
-
 <xacro:property name="wheel_radius" value="0.0909"/>
 <xacro:property name="wheel_width" value="0.1016"/>
 
-<xacro:property name="camera_y" value=""/>
-<xacro:property name="camera_z" value=""/>
+<xacro:property name="footprint" value="${-((base_height/2)+(wheel_radius))}"/>
 
-<xacro:property name="gnss_x" value=""/>
-<xacro:property name="gnss_y" value=""/>
-<xacro:property name="gnss_z" value=""/>
+<xacro:property name="steering_xy" value="0.06155"/>
+<xacro:property name="steering_z" value="0.23"/>
+
+
+<xacro:property name="camera_x" value="0.34"/>
+<xacro:property name="camera_z" value="${0.28+footprint}"/>
+
+<xacro:property name="gnss_x" value="-0.21"/>
+<xacro:property name="gnss_y" value="0.07"/>
+<xacro:property name="gnss_z" value="${0.60+footprint}"/>
+<xacro:property name="gnss_radius" value="0.03"/>
+<xacro:property name="gnss_width" value="0.02"/>
+
+<!-- <xacro:property name="imu_x" value=""/>
+<xacro:property name="imu_y" value=""/>
+<xacro:property name="imu_z" value=""/>
+<xacro:property name="imu_radius" value=""/>
+<xacro:property name="imu_width" value=""/> -->
 
 <xacro:property name="PI" value="3.1415692"/>
 
-<xacro:property name="footprint" value="${-((base_height/2)+(wheel_radius))}"/>
+
 
        
     <!-- Robot Base -->
@@ -121,7 +133,7 @@
         <parent link="base_link"/>
         <child link="middle_left_wheel_link"/>
         <origin xyz="0 ${(base_width)/2} ${footprint}" rpy="0 0 0"/>
-        <axis xyz="0 1 0"/>
+        <axis xyz="0 0 1"/>
     </joint>
 
 
@@ -142,50 +154,69 @@
         <parent link="base_link"/>
         <child link="middle_right_wheel_link"/>
         <origin xyz="0 ${-(base_width)/2} ${footprint}" rpy="0 0 0"/>
-        <axis xyz="0 1 0"/>
+        <axis xyz="0 0 1"/>
     </joint>
 
 
+    <!--Sensors -->
+    
    <!--Camera Addtion-->
 
-    <xacro:arg name="camera_name"   default="zed2i" />
-    <xacro:arg name="camera_model"  default="zed2i" />
-    <xacro:arg name="use_zed_localization" default="true" />
+   <xacro:arg name="camera_name"   default="zed2i" />
+  <xacro:arg name="camera_model"  default="zed2i" />
+  <xacro:arg name="use_zed_localization" default="true" />
 
     <xacro:zed_camera name="$(arg camera_name)" model="$(arg camera_model)" />
 
      <!-- Add the first ZED Camera -->  
-    <xacro:if value="$(arg use_zed_localization)">
-        <!-- ZED Localization -> The reference link is '$(arg camera_name)_camera_link' and 'base_link' is a child -->
-        <joint name="$(arg camera_name)_joint" type="fixed">
-        <parent link="base_link"/>
-        <child link="$(arg camera_name)_camera_link"/>
-        <origin xyz="${camera_y} ${camera_z}" rpy="0 0 0"/>
-        </joint>
-    </xacro:if>
-    <xacro:unless value="$(arg use_zed_localization)">
-        <!-- NO ZED Localization -> '$(arg camera_name)_camera_link' is a child of 'base_link' -->
-        <joint name="$(arg camera_name)_joint" type="fixed">
-        <parent link="base_link"/>
-        <child link="$(arg camera_name)_camera_link"/>
-        <origin xyz="${camera_y} ${camera_z}" rpy="0 0 0"/>
-        </joint>
-    </xacro:unless>
+      <xacro:if value="$(arg use_zed_localization)">
+    <!-- ZED Localization -> The reference link is '$(arg camera_name)_camera_link' and 'base_link' is a child -->
+    <joint name="$(arg camera_name)_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="$(arg camera_name)_camera_link"/>
+      <origin xyz="${camera_x} 0.0 ${camera_z}" rpy="0 0 0"/>
+    </joint>
 
-<!--GNSS-->
+  </xacro:if>
+  <xacro:unless value="$(arg use_zed_localization)">
+    <!-- NO ZED Localization -> '$(arg camera_name)_camera_link' is a child of 'base_link' -->
+    <joint name="$(arg camera_name)_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="$(arg camera_name)_camera_link"/>
+      <origin xyz="${camera_x} 0.0 ${camera_z}" rpy="0 0 0"/>
+    </joint>
+  </xacro:unless>
 
-    <link name="gnss_link">
-            <visual>
-                <origin xyz="0.0 0.0 0.0" rpy="1.57 0.0 0.0"/>
-                <geometry>
-                    <cylinder radius="0.05" length="0.05"/> <!-- GNSS radius?-->
-                </geometry>
-            </visual>
+
+  <link name="gnss_link">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="${gnss_radius}" length="${gnss_width}"/>
+            </geometry>
+        </visual>
+   </link>
+
+    <joint name="gnss_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="gnss_link"/>
+        <origin xyz="${gnss_x} ${gnss_y} ${gnss_z}" rpy="0 0 0"/>
+    </joint>
+
+
+    <!-- <link name="imu_link">
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="${Pi/2} 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="${imu_radius}" length="{imu_width}"/>
+            </geometry>
+        </visual>
     </link>
 
-        <joint name="gnss_joint" type="fixed">
-            <parent link="base_link"/>
-            <child link="gnss_link"/>
-            <origin xyz="${gnss_x} ${gnss_y} ${gnss_z}" rpy="0 0 0"/> <!-- GNSS position -->
-        </joint>
+    <joint name="imu_joint">
+        <parent link="base_link"/>
+        <child link="imu_link"/>
+        <origin xyz="${imu_x} ${imu_y} ${imu_z}" rpy="0 0 0"/>
+    </joint> -->
+
 </robot>
