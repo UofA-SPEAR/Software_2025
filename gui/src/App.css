@@ -1,0 +1,74 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f4f4f9;
+}
+
+.section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.section.initial {
+  background-color: grey;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 10px 0;
+  position: sticky; 
+  top: 10; /* Defines how far from the top it should stick */
+  z-index: 1000; /* Ensures it stays above other elements if needed */
+}
+
+.button {
+  background-color: #333;
+  color: white;
+  padding: 10px 20px;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.button:hover {
+  background-color: #555;
+  transform: scale(1.05);
+}
+
+.button.red {
+  background-color: red;
+}
+
+.button.red:hover {
+  background-color: darkred;
+}
+
+.button.update{
+  width: 20%;
+}
+
+.text-field {
+  padding: 10px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+  transition: border-color 0.3s ease;
+}
+
+.text-field:focus {
+  outline: none;
+  border-color: #333;
+}
+
+.bottom-section {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
