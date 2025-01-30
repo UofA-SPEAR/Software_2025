@@ -166,7 +166,9 @@
   <xacro:arg name="camera_model"  default="zed2i" />
   <xacro:arg name="use_zed_localization" default="true" />
 
-    <xacro:zed_camera name="$(arg camera_name)" model="$(arg camera_model)" />
+    <xacro:zed_camera name="$(arg camera_name)" model="$(arg camera_model)" enable_gnss="false" custom_baseline="0">
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+    </xacro:zed_camera>
 
      <!-- Add the first ZED Camera -->  
       <xacro:if value="$(arg use_zed_localization)">
