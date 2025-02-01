@@ -35,4 +35,5 @@ __pycache__/
 Dockerfile.apple
 !Dockerfile
 
+.DS_Store
 

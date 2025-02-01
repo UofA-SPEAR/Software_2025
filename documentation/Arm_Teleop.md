@@ -23,7 +23,7 @@ source install/setup.bash
 ### Short Way
 
 ```
-ros2 launch teleop arm.teleop.py
+ros2 launch teleop arm.launch.py
 ```
 If experiencing an erorr this coulde be due to permission being denied in the shell script. run: 
 ```
