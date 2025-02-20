@@ -27,17 +27,14 @@
 <xacro:property name="gnss_radius" value="0.03"/>
 <xacro:property name="gnss_width" value="0.02"/>
 
-<!-- <xacro:property name="imu_x" value=""/>
-<xacro:property name="imu_y" value=""/>
-<xacro:property name="imu_z" value=""/>
-<xacro:property name="imu_radius" value=""/>
-<xacro:property name="imu_width" value=""/> -->
+<xacro:property name="imu_x" value="-0.21"/>
+<xacro:property name="imu_y" value="0.07"/>
+<xacro:property name="imu_z" value="${0.60+footprint}"/>
+<xacro:property name="imu_radius" value="0.03"/>
+<xacro:property name="imu_width" value="0.02"/> 
 
 <xacro:property name="PI" value="3.1415692"/>
-
-
-
-       
+   
     <!-- Robot Base -->
    <link name="base_link">
         <visual>
@@ -206,19 +203,19 @@
     </joint>
 
 
-    <!-- <link name="imu_link">
+    <link name="imu_link">
         <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="${Pi/2} 0.0 0.0"/>
+            <origin xyz="0.0 0.0 0.0" rpy="${PI/2} 0.0 0.0"/>
             <geometry>
-                <cylinder radius="${imu_radius}" length="{imu_width}"/>
+                <cylinder radius="${imu_radius}" length="${imu_width}"/>
             </geometry>
         </visual>
     </link>
 
-    <joint name="imu_joint">
+    <joint name="imu_joint" type="fixed">
         <parent link="base_link"/>
         <child link="imu_link"/>
         <origin xyz="${imu_x} ${imu_y} ${imu_z}" rpy="0 0 0"/>
-    </joint> -->
+    </joint> 
 
 </robot>
