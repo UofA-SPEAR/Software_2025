@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'gps_onboard'
+package_name = 'kipp_gps'
 
 setup(
     name=package_name,
@@ -13,14 +13,16 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='ayden',
-    maintainer_email='aydenbravender@gmail.com',
+    maintainer='spearua',
+    maintainer_email='kandapah@ualberta.ca',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'gps_sim_node = gps_onboard.gps_sim:main'
+            'gps_record = kipp_gps.save_gps_node:main',
+            'gps_nav = kipp_gps.gps_navigation:main',
+            'dummy_gps = kipp_gps.dummy_gps:main'
         ],
     },
 )
