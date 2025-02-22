@@ -4,7 +4,7 @@ package_name = 'kipp_sensor'
 
 setup(
     name=package_name,
-    version='0.0.0',
+    version='1.0.0',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -13,9 +13,9 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='prjadmin',
-    maintainer_email='spearua@ualberta.ca',
-    description='TODO: Package description',
+    maintainer='Induwara Kandapahala',
+    maintainer_email='kandapah@ualberta.ca',
+    description='This Package contains the nodes that extract data from the GPS and IMU.',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
