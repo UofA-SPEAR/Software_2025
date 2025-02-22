@@ -22,8 +22,9 @@ def generate_launch_description():
         executable='joint_state_publisher',
         name='joint_state_publisher',
         output='screen',
-        parameters=[{'robot_description': robot_description, 'source_list':["wheel_encoders/"]}]
+        parameters=[{'robot_description': robot_description, 'source_list':["wheel_encoders"]}]
     )
+
     # Define the robot_state_publisher node
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
