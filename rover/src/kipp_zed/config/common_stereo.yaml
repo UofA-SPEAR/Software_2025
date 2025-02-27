@@ -175,7 +175,7 @@
             debug_camera_controls: false
             debug_point_cloud: false
             debug_positional_tracking: false
-            debug_gnss: true
+            debug_gnss: false
             debug_sensors: false
             debug_mapping: false
             debug_terrain_mapping: false

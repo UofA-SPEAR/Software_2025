@@ -206,7 +206,7 @@
         <parent link="$(arg camera_name)_camera_link"/>
         <child link="base_link"/>
         <origin
-            xyz="-0.12 0.0 -0.25"
+            xyz="-${camera_x} 0 ${camera_z}"
             rpy="0 0 0"
         />
         </joint>
