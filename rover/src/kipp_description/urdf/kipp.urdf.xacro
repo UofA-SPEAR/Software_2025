@@ -33,6 +33,9 @@
 <xacro:property name="imu_radius" value="0.03"/>
 <xacro:property name="imu_width" value="0.02"/> 
 
+<xacro:property name="height_offset" value="0.1"/>
+
+
 <xacro:property name="PI" value="3.1415692"/>
    
     <!-- Robot Base -->

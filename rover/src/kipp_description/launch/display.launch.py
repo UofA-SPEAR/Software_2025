@@ -45,6 +45,6 @@ def generate_launch_description():
         DeclareLaunchArgument(name='rvizconfig', default_value=default_rviz_config_path, description='Absolute path to rviz config file'),
         joint_state_publisher_node,
         joint_state_publisher_gui_node,
-        #robot_state_publisher_node,
+        robot_state_publisher_node,
         rviz_node
     ])
