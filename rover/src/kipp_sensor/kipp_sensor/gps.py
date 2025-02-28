@@ -1,127 +1,141 @@
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import NavSatFix
-from std_srvs.srv import SetBool, Trigger
+from sensor_msgs.msg import NavSatFix, NavSatStatus
+from std_msgs.msg import Float64
 import serial
-import struct
-import time
+import pynmea2
+from pyudev import Context, Devices
 
-class GNSSNode(Node):
+class GPSNode(Node):
     def __init__(self):
-        super().__init__('gnss_node')
-        self.declare_parameter('port', '/dev/ttyUSB0')
-        self.declare_parameter('baudrate', 38400)
-        self.declare_parameter('protocol', 'NMEA')  # UBX, NMEA, RTCM
-        self.declare_parameter('interface', 'UART')  # UART, SPI, I2C, USB
+        super().__init__('gps_node')
+        self.declare_parameter('vendor_id', '1546')  # Example VID
+        self.declare_parameter('product_id', '01a9')  # Example PID
+        self.declare_parameter('baud_rate', 38400)
+        
+        vendor_id = self.get_parameter('vendor_id').get_parameter_value().string_value
+        product_id = self.get_parameter('product_id').get_parameter_value().string_value
+        baud_rate = self.get_parameter('baud_rate').get_parameter_value().integer_value
+        
+        serial_port = self.find_serial_port(vendor_id, product_id)
+        if serial_port:
+            self.serial_connection = serial.Serial(serial_port, baud_rate, timeout=1)
+        else:
+            self.get_logger().error('GPS device not found')
+            rclpy.shutdown()
 
-        self.port = self.get_parameter('port').get_parameter_value().string_value
-        self.baudrate = self.get_parameter('baudrate').get_parameter_value().integer_value
-        self.protocol = self.get_parameter('protocol').get_parameter_value().string_value
-        self.interface = self.get_parameter('interface').get_parameter_value().string_value
+        self.navsat_publisher = self.create_publisher(NavSatFix, '/gps/fix', 10)
+        self.speed_publisher = self.create_publisher(Float64, '/gps/speed', 10)
+        self.heading_publisher = self.create_publisher(Float64, '/gps/heading', 10)
 
-        self.publisher_ = self.create_publisher(NavSatFix, 'gps/fix', 10)
-        self.serial_port = None
-
-        self.srv_toggle = self.create_service(SetBool, 'toggle_gnss', self.toggle_gnss)
-        self.srv_reconfigure = self.create_service(Trigger, 'reconfigure_gnss', self.reconfigure_gnss)
-        self.srv_reset = self.create_service(Trigger, 'reset_gnss', self.reset_gnss)
-        self.active = True
-
-        self.init_communication()
-        self.timer = self.create_timer(1.0, self.read_gnss_data)
+        self.timer = self.create_timer(0.05, self.read_and_publish)
     
-    def init_communication(self):
-        if self.interface == 'UART':
+    def find_serial_port(self, vendor_id, product_id):
+        context = Context()
+        for device in context.list_devices(subsystem='tty'):
+            if 'ID_VENDOR_ID' in device and 'ID_MODEL_ID' in device:
+                if device['ID_VENDOR_ID'] == vendor_id and device['ID_MODEL_ID'] == product_id:
+                    return device.device_node
+        return None
+
+
+    def publishCovariance(self, navsat_msg, hdop):
+        """
+        Computes covariance using HDOP and publishes the NavSatFix message.
+        
+        Args:
+            navsat_msg (NavSatFix): The NavSatFix message object to publish.
+            hdop (float): Horizontal Dilution of Precision value from GGA sentence.
+        """
+        if hdop <= 0 or hdop > 99.99:  # Check if HDOP is valid
+            self.get_logger().warn("Invalid HDOP value received, using default covariance.")
+            hdop = 1.0  # Default to a safe value if HDOP is invalid
+
+        sigma = 5.0  # Estimated GPS error in meters (adjust based on GPS specs)
+        variance = (hdop * sigma) ** 2  # Covariance approximation
+
+        # Set covariance matrix (assuming isotropic uncertainty)
+        navsat_msg.position_covariance = [
+            variance, 0.0, 0.0,
+            0.0, variance, 0.0,
+            0.0, 0.0, variance
+        ]
+        navsat_msg.position_covariance_type = NavSatFix.COVARIANCE_TYPE_KNOWN
+
+        # Publish updated NavSatFix message
+        # self.navsat_publisher.publish(navsat_msg)
+
+        self.get_logger().info(f"Published NavSatFix with covariance: {navsat_msg.position_covariance}")
+
+
+
+    def read_and_publish(self):
+        if not self.serial_connection:
+            return
+        line = self.serial_connection.readline().decode('ascii', errors='replace')
+        if line.startswith('$'):
             try:
-                self.serial_port = serial.Serial(self.port, self.baudrate, timeout=1)
-                self.get_logger().info(f'Connected via UART to {self.port} at {self.baudrate} baud')
-            except serial.SerialException as e:
-                self.get_logger().error(f'Failed to open serial port: {e}')
-        elif self.interface == 'SPI':
-            self.get_logger().info('SPI interface selected, implementation needed')
-        elif self.interface == 'I2C':
-            self.get_logger().info('I2C interface selected, implementation needed')
-        elif self.interface == 'USB':
-            self.get_logger().info('USB interface selected, implementation needed')
+                msg = pynmea2.parse(line)
+                #print(msg)
+                if isinstance(msg, pynmea2.types.talker.GGA):
+                    navsat_msg = NavSatFix()
+                    navsat_msg.header.stamp = self.get_clock().now().to_msg()
+                    navsat_msg.header.frame_id = 'gps'
+                    if msg.gps_qual == 0:  # Check for no fix
+                        self.get_logger().warn('No GPS fix available.')
+                        navsat_msg.status.status = NavSatStatus.STATUS_NO_FIX
+                        navsat_msg.latitude = float('nan')
+                        navsat_msg.longitude = float('nan')
+                        navsat_msg.altitude = float('nan')
+                    else:
+                        navsat_msg.status.status = NavSatStatus.STATUS_FIX  # Assuming a fix
+                        navsat_msg.latitude = msg.latitude
+                        navsat_msg.longitude = msg.longitude
+                        navsat_msg.altitude = msg.altitude if msg.altitude != '' else float('nan')
 
-    def read_gnss_data(self):
-        if self.serial_port is None or not self.active:
-            return
+                        hdop = float(msg.horizontal_dil) if msg.horizontal_dil else -1.0  # Extract HDOP
+                        self.publishCovariance(navsat_msg, hdop)
 
-        try:
-            line = self.serial_port.readline().decode('utf-8').strip()
-            if self.protocol == 'NMEA' and line.startswith('$GNGGA'):
-                self.parse_nmea(line)
-        except Exception as e:
-            self.get_logger().error(f'Error reading GNSS data: {e}')
+                    self.navsat_publisher.publish(navsat_msg)
+                elif isinstance(msg, pynmea2.types.talker.RMC):
+                    if msg.status == 'V':  # Check for invalid (void) fix status
+                        self.get_logger().warn('GPS fix not valid.')
+                        speed = -1.0  # Indicate error/invalid state
+                        heading = -1.0  # Indicate error/invalid state
+                    else:
+                        try:
+                            speed = float(msg.spd_over_grnd) if msg.spd_over_grnd else -1.0
+                        except ValueError:
+                            speed = -1.0  # Default to error value if conversion fails
+                        try:
+                            heading = float(msg.true_course) if msg.true_course else -1.0
+                        except ValueError:
+                            heading = -1.0  # Default to error value if conversion fails
 
-    def parse_nmea(self, nmea_sentence):
-        parts = nmea_sentence.split(',')
-        if len(parts) < 10:
-            return
-
-        try:
-            lat = self.convert_to_decimal(parts[2], parts[3])
-            lon = self.convert_to_decimal(parts[4], parts[5])
-            alt = float(parts[9]) if parts[9] else 0.0
-
-            msg = NavSatFix()
-            msg.latitude = lat
-            msg.longitude = lon
-            msg.altitude = alt
-            msg.header.stamp = self.get_clock().now().to_msg()
-            msg.header.frame_id = 'gps'
-            self.publisher_.publish(msg)
-        except ValueError:
-            self.get_logger().warn('Invalid NMEA sentence received')
-
-    def convert_to_decimal(self, degrees_minutes, direction):
-        if not degrees_minutes:
-            return 0.0
-
-        degrees = float(degrees_minutes[:2])
-        minutes = float(degrees_minutes[2:])
-        decimal = degrees + (minutes / 60)
-        if direction in ['S', 'W']:
-            decimal *= -1
-        return decimal
-
-    def toggle_gnss(self, request, response):
-        self.active = request.data
-        response.success = True
-        response.message = f'GNSS {"enabled" if self.active else "disabled"}'
-        return response
-
-    def reconfigure_gnss(self, request, response):
-        """Reconfigure GNSS settings dynamically without restarting."""
-        self.get_logger().info('Reconfiguring GNSS settings')
-        response.success = True
-        response.message = 'GNSS reconfigured successfully'
-        return response
-
-    def reset_gnss(self, request, response):
-        """Reset the GNSS module to its default settings."""
-        self.get_logger().info('Resetting GNSS module')
-        response.success = True
-        response.message = 'GNSS module reset successfully'
-        return response
-
-    def destroy_node(self):
-        if self.serial_port:
-            self.serial_port.close()
-        super().destroy_node()
+                    speed_msg = Float64()
+                    speed_msg.data = speed
+                    self.speed_publisher.publish(speed_msg)
+                    
+                    heading_msg = Float64()
+                    heading_msg.data = heading
+                    self.heading_publisher.publish(heading_msg)
+            except pynmea2.ParseError as e:
+                self.get_logger().warn(f'Failed to parse NMEA sentence: {e}')
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = GNSSNode()
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        node.destroy_node()
-        rclpy.shutdown()
+
+    gps_node = GPSNode()
+
+    rclpy.spin(gps_node)
+
+    # Destroy the node explicitly
+    # (optional - otherwise it will be done automatically
+    # when the garbage collector destroys the node object)
+    gps_node.destroy_node()
+    rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()
