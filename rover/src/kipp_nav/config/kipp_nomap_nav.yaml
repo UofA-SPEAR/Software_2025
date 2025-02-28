@@ -175,9 +175,9 @@ local_costmap:
         z_voxels: 16
         max_obstacle_height: 2.0
         mark_threshold: 0
-        observation_sources: point_cloud/cloud_registered
+        observation_sources: zed/zed_node/point_cloud/cloud_registered
         scan:
-          topic: /point_cloud/cloud_registered
+          topic: /zed/zed_node/point_cloud/cloud_registered
           max_obstacle_height: 2.0
           clearing: True 
           marking: True
@@ -211,9 +211,9 @@ global_costmap:
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: point_cloud/cloud_registered
+        observation_sources: zed/zed_node/point_cloud/cloud_registered
         scan:
-          topic: /point_cloud/cloud_registered
+          topic: /zed/zed_node/point_cloud/cloud_registered
           max_obstacle_height: 2.0
           clearing: True
           marking: True
