@@ -19,15 +19,23 @@ class DummyGps(Node):
 
     def timer_callback(self):
         msg = NavSatFix()
-        msg.latitude = random.uniform(-90.0, 90.0)
-        msg.longitude = random.uniform(-180.0, 180.0)
-        msg.altitude = random.uniform(0, 10000)
+        msg.latitude = 51.0447#random.uniform(-90.0, 90.0)
+        msg.longitude = -114.0719#random.uniform(-180.0, 180.0)
+        msg.altitude = 1045.0#random.uniform(0, 10000)
+
+        msg.position_covariance = [
+            0.0005, 0, 0,
+            0, 0.0005, 0,
+            0, 0, 0.002
+        ]
+
+        msg.position_covariance_type = 2
 
         speed_msg = Float64()
-        speed_msg.data = random.uniform(0, 120)  # random speed between 0 and 120 m/s
+        speed_msg.data = 10.0 # random speed between 0 and 120 m/s
 
         heading_msg = Float64()
-        heading_msg.data = random.uniform(0, 360)  # random heading between 0 and 360 degrees
+        heading_msg.data = 60.0 # random heading between 0 and 360 degrees
 
         self.navsat_publisher.publish(msg)
         self.speed_publisher.publish(speed_msg)

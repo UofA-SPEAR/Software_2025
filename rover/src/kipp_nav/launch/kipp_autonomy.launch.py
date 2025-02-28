@@ -26,7 +26,7 @@ def generate_launch_description():
             os.path.join(bringup_dir, "launch", "navigation_launch.py")
         ),
         launch_arguments={
-            "use_sim_time": "False",
+            "use_sim_time": "false",
             "params_file": configured_params,
             "autostart": "True",
         }.items(),
@@ -55,7 +55,7 @@ def generate_launch_description():
         'use_gui': False,
         'source_list': ['/joint_states'],
         'rate': 30,
-        'publish_default_positions': False
+        'publish_default_positions': True
     }]
     )
     
