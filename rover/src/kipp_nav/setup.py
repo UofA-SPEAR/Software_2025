@@ -25,7 +25,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'transform_deriver = kipp_nav.transform_deriver:main',
+            'goal_publisher = kipp_nav.goal_publisher:main'
         ],
     },
 )

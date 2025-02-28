@@ -2,7 +2,20 @@ import rclpy
 from rclpy.node import Node
 from nav2_simple_commander.robot_navigator import BasicNavigator
 from geometry_msgs.msg import PointStamped
-from nav2_gps_waypoint_follower_demo.utils.gps_utils import latLonYaw2Geopose
+import math
+from geographic_msgs.msg import GeoPose
+from geometry_msgs.msg import Quaternion
+
+
+def latLonYaw2Geopose(latitude: float, longitude: float, yaw: float = 0.0) -> GeoPose:
+    """
+    Creates a geographic_msgs/msg/GeoPose object from latitude, longitude and yaw
+    """
+    geopose = GeoPose()
+    geopose.position.latitude = latitude
+    geopose.position.longitude = longitude
+    geopose.orientation = quaternion_from_euler(0.0, 0.0, yaw)
+    return geopose
 
 
 class GoalPublisher(Node):
