@@ -32,11 +32,11 @@ class Kipp_Can_Drive(Node):
         self.rotate_sub = self.create_subscription(Joy, '/manual/joy', self.rotate_rover, 10)
         self.timer = self.create_timer(0.25, self.paced_commands)
         self.rotate = 0 
-        self.bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=1000000)
+        self.bus = can.interface.Bus(interface='socketcan', channel='vcan0', bitrate=1000000)
 
         self.T= 0.455  # Width of the rover (meters)
-        self.L1 = 0.425 # front wheels to middle wheels
-        self.L2 = 0.325 # back wheels to middle wheels 
+        self.L1 = 0.325 # front wheels to middle wheels
+        self.L2 = 0.425 # back wheels to middle wheels 
         self.v = 0.0
         self.omega = 0.0
         
@@ -95,22 +95,22 @@ class Kipp_Can_Drive(Node):
     def steering_actuator_id_to_can_id(self, actuator_id):
         # Map your actuator_id to its corresponding CAN ID for steering motors
         mapping = {
-            "front_left": 0x24, #back_right 
-            "front_right": 0x26, #back_left
-            "back_left": 0x25, #front_right
-            "back_right": 0x22, #front_left
+            "front_left": 0x23, #back_right 
+            "front_right": 0x25, #back_left
+            "back_left": 0x22, #front_right
+            "back_right": 0x24, #front_left
         }
         return mapping.get(actuator_id, None)
 
     def drive_actuator_id_to_can_id(self, actuator_id):
         # Map your actuator_id to its corresponding CAN ID for drive motors
         mapping = {
-            "fl": 0x11,
-            "fr": 0x14,
+            "fl": 0x13,
+            "fr": 0x16,
             "ml": 0x12,
             "mr": 0x15,
-            "bl": 0x13,
-            "br": 0x16,
+            "bl": 0x11,
+            "br": 0x14,
         }
         return mapping.get(actuator_id, None)
 
@@ -152,31 +152,68 @@ class Kipp_Can_Drive(Node):
 
     def calculate_wheel_velocities(self, v, omega):
         """
-        Calculate wheel velocities for a 6-wheel rover with differential speeds.
-        
-        Parameters:
-        v (float): Linear velocity of the rover (m/s)
-        omega (float): Angular velocity of the rover (rad/s)
-        
-        Returns:
-        dict: Wheel velocities (m/s) for each wheel (fl, fr, ml, mr, bl, br)
+        Calculate individual wheel velocities for a 6-wheel rover to mimic a differential drive.
+        The rover has 3 wheels per side:
+        - Front left:  (self.L1,  self.T/2)
+        - Middle left: (0,           self.T/2)
+        - Back left:   (-self.L2,  self.T/2)
+        - Front right: (self.L1, -self.T/2)
+        - Middle right:(0,         -self.T/2)
+        - Back right:  (-self.L2, -self.T/2)
+
+        For combined translation and rotation (v != 0 and ω != 0), the turning center is at (0, R) with R = v/ω.
+        Each wheel’s effective turning radius is:
+            r_eff = sqrt( x^2 + (y - R)^2 )
+        and its speed is then:
+            v_wheel = sign(v) * |ω| * r_eff
+
+        In a straight line (ω ≈ 0), all wheels get the same speed v.
+        In pure rotation (v ≈ 0 but ω ≠ 0), we approximate differential speeds based on track width.
         """
+        # Limit the commanded linear velocity
         velocity_limiter = 0.5
         if v > velocity_limiter:
             v = velocity_limiter
         elif v < -velocity_limiter:
             v = -velocity_limiter
 
-        vl = v
-        vr = v
-        
-        velocities = {
-            "fl": vl, "fr": vr,
-            "ml": vl, "mr": vr,
-            "bl": vl, "br": vr
+        # Define the wheel positions relative to the robot center (x forward, y left)
+        wheels = {
+            "fl": (self.L1,  self.T / 2),   # Front Left
+            "ml": (0.0,       self.T / 2),   # Middle Left
+            "bl": (-self.L2,  self.T / 2),   # Back Left
+            "fr": (self.L1, -self.T / 2),   # Front Right
+            "mr": (0.0,      -self.T / 2),   # Middle Right
+            "br": (-self.L2, -self.T / 2)    # Back Right
         }
-        
-        return velocities
+
+        speeds = {}
+        # Check for straight-line motion
+        if abs(omega) < 1e-6:
+            for key in wheels:
+                speeds[key] = v
+        # Check for pure rotation (almost zero forward velocity)
+        elif abs(v) < 1e-3:
+            # For pure rotation, a common differential-drive approximation:
+            # Left wheels:  v = -|ω|*(T/2)
+            # Right wheels: v =  |ω|*(T/2)
+            for key, (x, y) in wheels.items():
+                if y > 0:  # left side wheels
+                    speeds[key] = -abs(omega) * (self.T / 2)
+                else:      # right side wheels
+                    speeds[key] =  abs(omega) * (self.T / 2)
+        else:
+            # Combined translation and rotation:
+            # Compute turning radius of the robot's center
+            R = v / omega
+            v_sign = 1 if v >= 0 else -1
+            for key, (x, y) in wheels.items():
+                # Compute the effective radius from the turning center at (0, R)
+                # (This works whether R is positive (left turn) or negative (right turn).)
+                r_eff = math.sqrt(x * x + (y - R) ** 2)
+                speeds[key] = v_sign * abs(omega) * r_eff
+        return speeds
+
     
     def create_drive_command(self, actuator_id, velocity = 0):
         # Construct arbitration ID
@@ -185,7 +222,7 @@ class Kipp_Can_Drive(Node):
         receiver_node_id=actuator_id
         sender_node_id=1
         arbitration_id = priority << 24 | command_id << 16 | receiver_node_id << 8 | sender_node_id
-        # print(f"Velocity: {velocity} ID {actuator_id}")
+        print(f"Velocity: {velocity} ID {actuator_id}")
         # Pack data (velocity)
         data = struct.pack(">f", velocity)  # 'f' for float32
         # Create CAN message
@@ -200,8 +237,9 @@ class Kipp_Can_Drive(Node):
         receiver_node_id=actuator_id
         sender_node_id=1
         arbitration_id = priority << 24 | command_id << 16 | receiver_node_id << 8 | sender_node_id
-        if actuator_id == 36:
-            print(f"angle: {180*angle/math.pi} ID {actuator_id}")
+        print(f"angle: {180*angle/math.pi} ID {actuator_id}")
+        #if actuator_id == 36:
+        #    print(f"angle: {180*angle/math.pi} ID {actuator_id}")
         
         
         # Pack data (angle)
