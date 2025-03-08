@@ -38,8 +38,8 @@ Dockerfile.apple
 .DS_Store
 
 # Ignore images
-.png
-.svg
-.jpg
-.jpeg
+*.png
+*.svg
+*.jpg
+*.jpeg
 
