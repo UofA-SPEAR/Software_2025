@@ -14,6 +14,7 @@ setup(
         ('share/' + package_name, ['launch/teleop.launch.py']),
 
         ('share/' + package_name, ['launch/arm.launch.py']),
+        ('share/' + package_name, ['launch/arm_real.launch.py']),
         
 
     ],
