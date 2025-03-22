@@ -1,10 +1,10 @@
 from setuptools import find_packages, setup
 
-package_name = 'kipp_sensor'
+package_name = 'kipp_gps'
 
 setup(
     name=package_name,
-    version='1.0.0',
+    version='0.0.0',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -13,14 +13,16 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='Induwara Kandapahala',
+    maintainer='spearua',
     maintainer_email='kandapah@ualberta.ca',
-    description='This Package contains the nodes that extract data from the GPS and IMU.',
+    description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'gps = kipp_sensor.gps:main'
+            'gps_record = kipp_gps.save_gps_node:main',
+            'gps_nav = kipp_gps.gps_navigation:main',
+            'dummy_gps = kipp_gps.dummy_gps:main'
         ],
     },
 )

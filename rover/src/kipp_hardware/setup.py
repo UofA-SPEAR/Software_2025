@@ -1,10 +1,10 @@
 from setuptools import find_packages, setup
 
-package_name = 'kipp_sensor'
+package_name = 'kipp_hardware'
 
 setup(
     name=package_name,
-    version='1.0.0',
+    version='0.0.0',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -13,14 +13,16 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='Induwara Kandapahala',
+    maintainer='spearua',
     maintainer_email='kandapah@ualberta.ca',
-    description='This Package contains the nodes that extract data from the GPS and IMU.',
+    description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'gps = kipp_sensor.gps:main'
+            'can_node = kipp_hardware.kipp_can_drive:main',
+            'xbox_node = kipp_hardware.xbox_controller_node:main',
+            'gps_node = kipp_hardware.gps_serial:main'
         ],
     },
 )
