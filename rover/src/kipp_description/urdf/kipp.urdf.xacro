@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kipp">
-<!-- <xacro:include filename="$(find zed_wrapper)/urdf/zed_macro.urdf.xacro"/> -->
 
 <!-- Robot constants-->
 
@@ -17,9 +16,6 @@
 <xacro:property name="steering_xy" value="0.06155"/>
 <xacro:property name="steering_z" value="0.23"/>
 
-
-<xacro:property name="camera_x" value="0.34"/>
-<xacro:property name="camera_z" value="${0.28+footprint}"/>
 
 <xacro:property name="gnss_x" value="-0.21"/>
 <xacro:property name="gnss_y" value="0.07"/>
@@ -190,40 +186,4 @@
         <child link="imu_link"/>
         <origin xyz="${imu_x} ${imu_y} ${imu_z}" rpy="0 0 0"/>
     </joint> 
-
-    <xacro:arg name="camera_name"   default="zed" />
-    <xacro:arg name="camera_model"  default="zed2i" />
-    <xacro:arg name="use_zed_localization" default="true" />
-
-    <!-- ZED DOCUMENTATION OUT OF DATE AS OF FEB 25 2025, must add orgin -->
-    <xacro:include filename="$(find zed_wrapper)/urdf/zed_macro.urdf.xacro" />
-    <xacro:zed_camera name="$(arg camera_name)" model="$(arg camera_model)" enable_gnss="true">
-            <origin xyz="-0.12 0.0 -0.25" rpy="0 0 0"/>
-    </xacro:zed_camera>
-    
-
-      <!-- Add a joint to connect the ZED Camera to the robot -->
-    <xacro:if value="$(arg use_zed_localization)">
-        <!-- ZED Localization -> The reference link is '$(arg camera_name)_camera_link' and 'base_link' is a child -->
-        <joint name="$(arg camera_name)_joint" type="fixed">
-        <parent link="$(arg camera_name)_camera_link"/>
-        <child link="base_link"/>
-        <origin
-            xyz="-${camera_x} 0 ${camera_z}"
-            rpy="0 0 0"
-        />
-        </joint>
-    </xacro:if>
-    <xacro:unless value="$(arg use_zed_localization)">
-        <!-- NO ZED Localization -> '$(arg camera_name)_camera_link' is a child of 'base_link' -->
-        <joint name="$(arg camera_name)_joint" type="fixed">
-        <parent link="base_link"/>
-        <child link="$(arg camera_name)_camera_link"/>
-        <origin
-            xyz="0.12 0.0 0.25"
-            rpy="0 0 0"
-        />
-        </joint>
-    </xacro:unless>
-
 </robot>
