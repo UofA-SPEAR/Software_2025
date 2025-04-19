@@ -27,13 +27,13 @@
 <xacro:property name="imu_y" value="0.07"/>
 <xacro:property name="imu_z" value="${0.60+footprint}"/>
 <xacro:property name="imu_radius" value="0.03"/>
-<xacro:property name="imu_width" value="0.02"/> 
+<xacro:property name="imu_width" value="0.02"/>
 
 <xacro:property name="height_offset" value="0.1"/>
 
 
 <xacro:property name="PI" value="3.1415692"/>
-   
+
     <!-- Robot Base -->
    <link name="base_link">
         <visual>
@@ -44,10 +44,25 @@
                 <color rgba="0.5 0.5 0.5 1.0" />
             </material>
         </visual>
+        <!-- Added Collision -->
+        <collision>
+             <origin xyz="0 0 0" rpy="0 0 0"/>
+             <geometry>
+                 <box size="${base_length} ${base_width} ${base_height}"/>
+             </geometry>
+        </collision>
+        <!-- Added Inertial (PLACEHOLDER VALUES - UPDATE FOR ACCURACY) -->
+        <inertial>
+            <mass value="20.0"/> <!-- Estimated mass in kg -->
+            <origin xyz="0 0 0" rpy="0 0 0"/> <!-- Assuming geometric center is CoM -->
+            <inertia ixx="1.5" ixy="0.0" ixz="0.0"
+                     iyy="2.5" iyz="0.0"
+                     izz="3.5"/> <!-- Placeholder inertia tensor -->
+        </inertial>
     </link>
 
 
-    <!-- Robot Footprint -->
+    <!-- Robot Footprint (Virtual Link - No Collision/Inertial) -->
     <link name="base_footprint"/>
 
     <joint name="base_joint" type="fixed">
@@ -56,7 +71,7 @@
         <origin xyz="0.0 0.0 ${footprint-wheel_radius}" rpy="0 0 0"/>
     </joint>
 
-    <!-- Steering --> 
+    <!-- Steering Macro -->
     <xacro:macro name="steering" params="prefix x_reflect y_reflect">
         <link name="${prefix}_steering_link">
             <visual>
@@ -68,6 +83,21 @@
                     <color rgba="0.5 0.5 0.5 1.0"/>
                 </material>
             </visual>
+            <!-- Added Collision -->
+            <collision>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <geometry>
+                    <box size="${steering_xy} ${steering_xy} ${steering_z}"/>
+                </geometry>
+            </collision>
+            <!-- Added Inertial (PLACEHOLDER VALUES - UPDATE FOR ACCURACY) -->
+            <inertial>
+                <mass value="0.2"/> <!-- Estimated mass in kg -->
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <inertia ixx="0.0001" ixy="0.0" ixz="0.0"
+                         iyy="0.0001" iyz="0.0"
+                         izz="0.0001"/> <!-- Placeholder inertia tensor -->
+            </inertial>
         </link>
 
         <joint name="${prefix}_steering_joint" type="revolute">
@@ -75,7 +105,7 @@
             <child link="${prefix}_steering_link"/>
             <axis xyz="0 0 1"/>
             <origin xyz="${(x_reflect*base_length)/2} ${(y_reflect*base_width)/2} ${(footprint+wheel_radius)}" rpy="0 0 0"/>
-            <limit lower="${-(PI/2)}" upper="${(PI/2)}" effort="0.0" velocity="0.0"/>
+            <limit lower="${-(PI/2)}" upper="${(PI/2)}" effort="10.0" velocity="1.0"/> <!-- Added effort/velocity limits -->
         </joint>
     </xacro:macro>
 
@@ -85,7 +115,7 @@
     <xacro:steering prefix="back_right" x_reflect="-1" y_reflect="-1"/>
 
 
-    <!-- Edge Wheels -->
+    <!-- Edge Wheels Macro -->
     <xacro:macro name="edge_wheel" params="prefix x_reflect y_reflect">
         <link name="${prefix}_wheel_link">
             <visual>
@@ -97,16 +127,34 @@
                     <color rgba="0.0 0.0 0.0 1.0"/>
                 </material>
             </visual>
+            <!-- Added Collision -->
+            <collision>
+                <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+                 <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+                 </geometry>
+            </collision>
+            <!-- Added Inertial (PLACEHOLDER VALUES - UPDATE FOR ACCURACY) -->
+            <inertial>
+                <mass value="0.5"/> <!-- Estimated wheel mass in kg -->
+                <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+                 <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+                          iyy="0.0005" iyz="0.0"
+                          izz="0.0005"/> <!-- Placeholder inertia tensor for cylinder on X-axis -->
+            </inertial>
         </link>
 
-        <joint name="${prefix}_wheel_joint" type="continuous">
-            <parent link="base_link"/>
+        <joint name="${prefix}_wheel_joint" type="continuous"> <!-- Changed to continuous -->
+            <parent link="${prefix}_steering_link"/> <!-- **** CHANGED PARENT TO STEERING LINK **** -->
             <child link="${prefix}_wheel_link"/>
-            <origin xyz="${(x_reflect*base_length)/2} ${(y_reflect*base_width)/2} ${footprint}" rpy="0 0 0"/>
-            <axis xyz="0 0 1"/>
+            <!-- Wheel origin relative to steering link -->
+            <origin xyz="0 0 ${-(steering_z/2)}" rpy="0 0 0"/>
+            <axis xyz="0 1 0"/> <!-- Axis of rotation for driving -->
+             <!-- Add limits if needed for continuous, usually not -->
         </joint>
     </xacro:macro>
 
+    <!-- Create Edge Wheels - NOTE: Parent link changed in macro above -->
     <xacro:edge_wheel prefix="front_left" x_reflect="1" y_reflect="1"/>
     <xacro:edge_wheel prefix="front_right" x_reflect="1" y_reflect="-1"/>
     <xacro:edge_wheel prefix="back_left" x_reflect="-1" y_reflect="1"/>
@@ -119,17 +167,30 @@
             <geometry>
                 <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
             </geometry>
-            <material name="black">
-                <color rgba="0.0 0.0 0.0 1.0"/>
-            </material>
+            <material name="black"/>
         </visual>
+        <!-- Added Collision -->
+        <collision>
+             <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+             <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+            </geometry>
+        </collision>
+        <!-- Added Inertial (PLACEHOLDER VALUES - UPDATE FOR ACCURACY) -->
+        <inertial>
+            <mass value="0.5"/> <!-- Estimated wheel mass in kg -->
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+                     iyy="0.0005" iyz="0.0"
+                     izz="0.0005"/> <!-- Placeholder inertia tensor -->
+        </inertial>
     </link>
 
     <joint name="middle_left_wheel_joint" type="continuous">
         <parent link="base_link"/>
         <child link="middle_left_wheel_link"/>
-        <origin xyz="0 ${(base_width)/2} ${footprint}" rpy="0 0 0"/>
-        <axis xyz="0 0 1"/>
+        <origin xyz="0 ${(base_width)/2} ${footprint+wheel_radius}" rpy="0 0 0"/> <!-- Adjusted Z origin -->
+        <axis xyz="0 1 0"/> <!-- Axis of rotation for driving -->
     </joint>
 
 
@@ -140,29 +201,60 @@
             <geometry>
                 <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
             </geometry>
-            <material name="black">
-                <color rgba="0.0 0.0 0.0 1.0"/>
-            </material>
+            <material name="black"/>
         </visual>
+        <!-- Added Collision -->
+        <collision>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <geometry>
+                <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+            </geometry>
+        </collision>
+        <!-- Added Inertial (PLACEHOLDER VALUES - UPDATE FOR ACCURACY) -->
+        <inertial>
+            <mass value="0.5"/> <!-- Estimated wheel mass in kg -->
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0"
+                     iyy="0.0005" iyz="0.0"
+                     izz="0.0005"/> <!-- Placeholder inertia tensor -->
+        </inertial>
     </link>
 
     <joint name="middle_right_wheel_joint" type="continuous">
         <parent link="base_link"/>
         <child link="middle_right_wheel_link"/>
-        <origin xyz="0 ${-(base_width)/2} ${footprint}" rpy="0 0 0"/>
-        <axis xyz="0 0 1"/>
+        <origin xyz="0 ${-(base_width)/2} ${footprint+wheel_radius}" rpy="0 0 0"/> <!-- Adjusted Z origin -->
+        <axis xyz="0 1 0"/> <!-- Axis of rotation for driving -->
     </joint>
 
 
     <!-- Sensors -->
-    
+
   <link name="gnss_link">
         <visual>
             <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
             <geometry>
                 <cylinder radius="${gnss_radius}" length="${gnss_width}"/>
             </geometry>
+            <material name="sensor_material"> <!-- Optional: Define sensor material -->
+                 <color rgba="0.1 0.8 0.1 1.0" />
+            </material>
         </visual>
+        <!-- Added Collision -->
+        <collision>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="${gnss_radius}" length="${gnss_width}"/>
+            </geometry>
+        </collision>
+        <!-- Added Inertial (PLACEHOLDER VALUES - UPDATE FOR ACCURACY) -->
+        <inertial>
+            <mass value="0.05"/> <!-- Estimated sensor mass -->
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <inertia ixx="1e-6" ixy="0.0" ixz="0.0"
+                     iyy="1e-6" iyz="0.0"
+                     izz="1e-6"/> <!-- Very small inertia -->
+        </inertial>
    </link>
 
     <joint name="gnss_joint" type="fixed">
@@ -174,16 +266,49 @@
 
     <link name="imu_link">
         <visual>
-            <origin xyz="0.0 0.0 0.0" rpy="${PI/2} 0.0 0.0"/>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/> <!-- Simpler rpy for IMU box usually -->
             <geometry>
-                <cylinder radius="${imu_radius}" length="${imu_width}"/>
+                <!-- Maybe use a small box for IMU visual/collision -->
+                <box size="0.03 0.03 0.01"/>
+                <!-- <cylinder radius="${imu_radius}" length="${imu_width}"/> -->
             </geometry>
+             <material name="sensor_material"/>
         </visual>
+         <!-- Added Collision -->
+         <collision>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                 <box size="0.03 0.03 0.01"/>
+            </geometry>
+         </collision>
+        <!-- Added Inertial (PLACEHOLDER VALUES - UPDATE FOR ACCURACY) -->
+        <inertial>
+            <mass value="0.02"/> <!-- Estimated sensor mass -->
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <inertia ixx="1e-7" ixy="0.0" ixz="0.0"
+                     iyy="1e-7" iyz="0.0"
+                     izz="1e-7"/> <!-- Very small inertia -->
+        </inertial>
     </link>
 
     <joint name="imu_joint" type="fixed">
         <parent link="base_link"/>
         <child link="imu_link"/>
         <origin xyz="${imu_x} ${imu_y} ${imu_z}" rpy="0 0 0"/>
-    </joint> 
+    </joint>
+
+    <!-- Define materials if not already defined -->
+    <material name="black">
+        <color rgba="0.0 0.0 0.0 1.0"/>
+    </material>
+     <material name="Gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+    </material>
+    <material name="rover_material">
+        <color rgba="0.5 0.5 0.5 1.0" />
+    </material>
+     <material name="sensor_material">
+        <color rgba="0.1 0.8 0.1 1.0" />
+    </material>
+
 </robot>
