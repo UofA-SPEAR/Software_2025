@@ -1,27 +1,49 @@
 #!/usr/bin/env python3
 
-import warnings
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider
-from mpl_toolkits.mplot3d import Axes3D
 from ikpy.chain import Chain
 from ikpy.link import OriginLink, URDFLink
 from numpy import linalg as LA
-import time
 
 # ROS2 imports
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
+from std_msgs.msg import Float64MultiArray
 
-warnings.filterwarnings("ignore", message="Link Base link.*")
+# CONTROLLER BINDINGS - Edit these to match your controller
+# ========================================================
 
-# Configure matplotlib
-import matplotlib as mpl
-mpl.use('Qt5Agg')
-for key in ['save', 'fullscreen', 'quit', 'grid', 'home', 'back', 'forward', 'help', 'yscale', 'xscale']:
-    mpl.rcParams[f'keymap.{key}'] = []
+# BUTTONS
+MODE_TOGGLE_BUTTON = 10      # BACK button
+RESET_BUTTON = 11            # START button
+
+# Joint Mode Controls
+JOINT1_POS_BUTTON = 0      # D-pad UP
+JOINT1_NEG_BUTTON = 1      # D-pad DOWN  
+JOINT2_POS_BUTTON = 3      # D-pad LEFT
+JOINT2_NEG_BUTTON = 4      # D-pad RIGHT
+JOINT4_POS_BUTTON = 6       # Left shoulder
+JOINT4_NEG_BUTTON = 7      # Right shoulder
+
+# Cartesian Mode Controls
+ROLL_LEFT_BUTTON = 6        # Left shoulder
+ROLL_RIGHT_BUTTON = 7      # Right shoulder
+
+# AXES
+MOVE_X_AXIS = 0             # Left stick X
+MOVE_Y_AXIS = 1             # Left stick Y
+MOVE_Z_LEFT_TRIGGER = 5     # Left trigger
+MOVE_Z_RIGHT_TRIGGER = 4    # Right trigger
+PITCH_AXIS = 3              # Right stick Y
+YAW_AXIS = 2                # Right stick X
+
+# Joint Mode Axes
+JOINT5_AXIS = 0             # Left stick X
+JOINT6_AXIS = 1             # Left stick Y  
+JOINT7_AXIS = 3             # Right stick Y
+
+# ======================================================== 
 
 class InverseKinematicsNode(Node):
     def __init__(self):
@@ -30,12 +52,11 @@ class InverseKinematicsNode(Node):
         # Control configuration
         self.joint_mode = False
         self.scale = 5.0
-        self.rotation_scale = 25.0  # Separate scale for rotations
+        self.rotation_scale = 25.0
         self.dt = 0.01
-        self.updating_sliders = False
-        self.deadzone = 0.15  # Joystick deadzone
+        self.deadzone = 0.15
         
-        # Previous button states for debouncing
+        # Button state tracking
         self.prev_back_button = 0
         self.prev_start_button = 0
         
@@ -55,23 +76,15 @@ class InverseKinematicsNode(Node):
         self.q = np.zeros(8)
         self.v_cmd = np.zeros(6)
         
-        # Create subscriber to joy topic
-        self.joy_subscription = self.create_subscription(
-            Joy,
-            'manual/joy2',
-            self.joy_callback,
-            10)
+        # Subscribers and publishers
+        self.joy_subscription = self.create_subscription(Joy, 'manual/joy2', self.joy_callback, 10)
+        self.motor_publisher = self.create_publisher(Float64MultiArray, 'motor_commands', 10)
         
-        self.get_logger().info("Inverse Kinematics Node started. Waiting for joy messages on 'manual/joy2'...")
-        
-        # Setup GUI
-        self.setup_gui()
+        self.get_logger().info("Inverse Kinematics Node started")
         
     def apply_deadzone(self, value, deadzone=0.15):
-        """Apply deadzone to joystick input"""
         if abs(value) < deadzone:
             return 0.0
-        # Scale the remaining range to 0-1
         sign = 1 if value > 0 else -1
         return sign * (abs(value) - deadzone) / (1.0 - deadzone)
     
@@ -103,234 +116,153 @@ class InverseKinematicsNode(Node):
             
         return J
     
-    def setup_gui(self):
-        """Setup the matplotlib GUI"""
-        self.fig = plt.figure(figsize=(10, 8))
-        self.fig.subplots_adjust(left=0.15, right=0.78, bottom=0.1, top=0.9)
-        self.ax = self.fig.add_axes([0.15, 0.3, 0.55, 0.65], projection='3d')
-        self.ax_xy = self.fig.add_axes([0.79, 0.55, 0.18, 0.35])
-        
-        self.ax_xy.set_title('XY View')
-        self.ax_xy.set_xlim(-0.5, 0.5)
-        self.ax_xy.set_ylim(-0.5, 0.5)
-        self.ax_xy.set_aspect('equal')
-        self.ax_xy.grid(True)
-        
-        # Add controller instructions
-        self.fig.text(0.02, 0.95, "Xbox Controller (ROS2):", fontsize=12, fontweight='bold')
-        self.fig.text(0.02, 0.90, "Left Stick (0,1): Move X/Y", fontsize=10)
-        self.fig.text(0.02, 0.86, "Right Stick (2,3): Pitch/Yaw", fontsize=10)
-        self.fig.text(0.02, 0.82, "Triggers (4,5): Move Up/Down", fontsize=10)
-        self.fig.text(0.02, 0.78, "LB/RB: Roll Left/Right", fontsize=10)
-        self.fig.text(0.02, 0.74, "Back: Toggle Mode", fontsize=10)
-        self.fig.text(0.02, 0.70, "Start: Reset Pose", fontsize=10)
-        self.fig.text(0.02, 0.66, f"Topic: manual/joy2", fontsize=10, style='italic')
-        
-        # Create sliders
-        self.sliders = []
-        for i in range(7):
-            ax_sl = self.fig.add_axes([0.02, 0.1 + (6-i)*0.08, 0.12, 0.06])
-            slider = Slider(ax_sl, f'J{i+1}', -np.pi, np.pi, valinit=self.q[i+1])
-            slider.on_changed(lambda val, idx=i: self.update_joint(idx, val))
-            self.sliders.append(slider)
-        
-        # Initial plot
-        self.plot_arm(self.q)
-        plt.ion()
-        plt.show(block=False)
-    
-    def update_joint(self, idx, val):
-        """Update joint from slider"""
-        if self.updating_sliders:
-            return
-        self.q[idx+1] = val
-        self.plot_arm(self.q)
-    
-    def update_all_sliders(self):
-        """Update all sliders to match current joint angles"""
-        self.updating_sliders = True
-        try:
-            for i, slider in enumerate(self.sliders):
-                if i+1 < len(self.q):
-                    slider.set_val(self.q[i+1])
-        finally:
-            self.updating_sliders = False
-    
-    def plot_arm(self, joint_angles):
-        """Plot the robot arm"""
-        frames = self.my_chain.forward_kinematics(joint_angles, full_kinematics=True)
-        pts = [f[:3, 3] for f in frames]
-        X, Y, Z = [p[0] for p in pts], [p[1] for p in pts], [p[2] for p in pts]
-        
-        self.ax.clear()
-        self.ax.plot3D(X, Y, Z, linewidth=4, color='gray')
-        self.ax.scatter(X, Y, Z, s=60, color='steelblue', depthshade=True)
-        self.ax.scatter([pts[-1][0]], [pts[-1][1]], [pts[-1][2]], marker='x', color='red', s=80)
-        
-        self.ax.set_xlabel('X')
-        self.ax.set_ylabel('Y')
-        self.ax.set_zlabel('Z')
-        self.ax.set_xlim(-0.5, 0.5)
-        self.ax.set_ylim(-0.5, 0.5)
-        self.ax.set_zlim(0.0, 0.5)
-        
-        xy_pts = np.array(pts)
-        self.ax_xy.clear()
-        self.ax_xy.plot(xy_pts[:, 0], xy_pts[:, 1], '-o', color='gray', linewidth=2, markersize=4)
-        self.ax_xy.scatter(xy_pts[-1, 0], xy_pts[-1, 1], color='red', s=50)
-        self.ax_xy.set_xlim(-0.5, 0.5)
-        self.ax_xy.set_ylim(-0.5, 0.5)
-        self.ax_xy.set_aspect('equal')
-        self.ax_xy.grid(True)
-        
-        # Update the plot
-        try:
-            self.fig.canvas.draw()
-            self.fig.canvas.flush_events()
-        except:
-            pass  # Ignore drawing errors
+    def publish_motor_commands(self, joint_velocities):
+        msg = Float64MultiArray()
+        msg.data = joint_velocities.tolist()
+        self.motor_publisher.publish(msg)
     
     def joy_callback(self, msg):
-        """Process ROS2 Joy messages from Xbox controller"""
-        try:
-            # Ensure we have enough axes and buttons
-            if len(msg.axes) < 6 or len(msg.buttons) < 8:
-                self.get_logger().warn(f"Insufficient axes ({len(msg.axes)}) or buttons ({len(msg.buttons)})")
-                return
-            
-            # Button debouncing for mode toggle (Back button - typically button 6)
-            back_button = msg.buttons[6] if len(msg.buttons) > 6 else 0
-            if back_button == 1 and self.prev_back_button == 0:
-                self.joint_mode = not self.joint_mode
-                self.get_logger().info(f"Mode: {'Joint' if self.joint_mode else 'Cartesian'}")
-            self.prev_back_button = back_button
-            
-            # Button debouncing for reset (Start button - typically button 7)
-            start_button = msg.buttons[7] if len(msg.buttons) > 7 else 0
-            if start_button == 1 and self.prev_start_button == 0:
-                self.q = np.zeros(8)
-                self.plot_arm(self.q)
-                self.update_all_sliders()
-                self.get_logger().info("Robot pose reset")
-            self.prev_start_button = start_button
-            
-            if self.joint_mode:
-                self.process_joint_mode(msg)
-            else:
-                self.process_cartesian_mode(msg)
-                
-        except Exception as e:
-            self.get_logger().error(f"Error in joy callback: {str(e)}")
+        if len(msg.axes) < 6 or len(msg.buttons) < 8:
+            return
+        
+        # Mode toggle
+        back_button = msg.buttons[MODE_TOGGLE_BUTTON] if len(msg.buttons) > MODE_TOGGLE_BUTTON else 0
+        if back_button == 1 and self.prev_back_button == 0:
+            self.joint_mode = not self.joint_mode
+            self.get_logger().info(f"Mode: {'Joint' if self.joint_mode else 'Cartesian'}")
+        self.prev_back_button = back_button
+        
+        # Reset
+        start_button = msg.buttons[RESET_BUTTON] if len(msg.buttons) > RESET_BUTTON else 0
+        if start_button == 1 and self.prev_start_button == 0:
+            self.q = np.zeros(8)
+            self.publish_motor_commands(np.zeros(7))
+        self.prev_start_button = start_button
+        
+        if self.joint_mode:
+            self.process_joint_mode(msg)
+        else:
+            self.process_cartesian_mode(msg)
     
     def process_joint_mode(self, msg):
-        """Process joint mode control using D-pad and buttons"""
         joint_scale = 0.02
+        joint_velocities = np.zeros(7)
         
-        # D-pad is typically in axes or separate hat - for simplicity using buttons
-        # You may need to adjust these indices based on your specific controller mapping
-        
-        # Use buttons for joint control (A, B, X, Y, LB, RB)
-        if len(msg.buttons) >= 6:
-            # A button (usually index 0) - Joint 1 positive
-            if msg.buttons[0]:
+        # D-pad for joint control
+        if len(msg.buttons) > max(JOINT1_POS_BUTTON, JOINT1_NEG_BUTTON, JOINT2_POS_BUTTON, JOINT2_NEG_BUTTON):
+            if msg.buttons[JOINT1_POS_BUTTON]:
                 self.q[1] += joint_scale
-            # B button (usually index 1) - Joint 1 negative  
-            if msg.buttons[1]:
+                joint_velocities[0] = 1.0
+            if msg.buttons[JOINT1_NEG_BUTTON]:
                 self.q[1] -= joint_scale
-            # X button (usually index 2) - Joint 2 positive
-            if msg.buttons[2]:
+                joint_velocities[0] = -1.0
+            if msg.buttons[JOINT2_POS_BUTTON]:
                 self.q[2] += joint_scale
-            # Y button (usually index 3) - Joint 2 negative
-            if msg.buttons[3]:
+                joint_velocities[1] = 1.0
+            if msg.buttons[JOINT2_NEG_BUTTON]:
                 self.q[2] -= joint_scale
-            # LB (usually index 4) - Joint 4 positive
-            if msg.buttons[4]:
+                joint_velocities[1] = -1.0
+        
+        # Shoulder buttons for joint 4
+        if len(msg.buttons) > max(JOINT4_POS_BUTTON, JOINT4_NEG_BUTTON):
+            if msg.buttons[JOINT4_POS_BUTTON]:
                 self.q[4] += joint_scale
-            # RB (usually index 5) - Joint 4 negative
-            if msg.buttons[5]:
+                joint_velocities[3] = 1.0
+            if msg.buttons[JOINT4_NEG_BUTTON]:
                 self.q[4] -= joint_scale
+                joint_velocities[3] = -1.0
         
-        # Use stick axes for other joints
-        if len(msg.axes) >= 4:
-            # Left stick for joints 5 and 6
-            left_x = self.apply_deadzone(msg.axes[0], self.deadzone)
-            left_y = self.apply_deadzone(-msg.axes[1], self.deadzone)  # Inverted
+        # Stick axes for joints 5, 6, 7
+        if len(msg.axes) > max(JOINT5_AXIS, JOINT6_AXIS, JOINT7_AXIS):
+            joint5_input = self.apply_deadzone(msg.axes[JOINT5_AXIS], self.deadzone)
+            joint6_input = self.apply_deadzone(msg.axes[JOINT6_AXIS], self.deadzone)
+            joint7_input = self.apply_deadzone(msg.axes[JOINT7_AXIS], self.deadzone)
             
-            if abs(left_x) > 0.001:
-                self.q[5] += left_x * joint_scale
-            if abs(left_y) > 0.001:
-                self.q[6] += left_y * joint_scale
+            if abs(joint5_input) > 0.001:
+                self.q[5] += joint5_input * joint_scale
+                joint_velocities[4] = joint5_input
+            if abs(joint6_input) > 0.001:
+                self.q[6] += joint6_input * joint_scale
+                joint_velocities[5] = joint6_input
+            if abs(joint7_input) > 0.001:
+                self.q[7] += joint7_input * joint_scale
+                joint_velocities[6] = joint7_input
         
-        self.plot_arm(self.q)
-        self.update_all_sliders()
+        self.publish_motor_commands(joint_velocities)
     
     def process_cartesian_mode(self, msg):
-        """Process Cartesian mode control for full 6DOF"""
         self.v_cmd = np.zeros(6)
         
-        # Left stick: X/Y movement (axes 0 and 1)
-        if len(msg.axes) >= 2:
-            left_x = self.apply_deadzone(msg.axes[0], self.deadzone)   # Left/Right
-            left_y = self.apply_deadzone(-msg.axes[1], self.deadzone) # Forward/Back (inverted)
-            self.v_cmd[0] = left_x * self.scale           # X velocity
-            self.v_cmd[1] = left_y * self.scale           # Y velocity
+        # Movement controls
+        if len(msg.axes) > max(MOVE_X_AXIS, MOVE_Y_AXIS):
+            move_x = self.apply_deadzone(msg.axes[MOVE_X_AXIS], self.deadzone)
+            move_y = self.apply_deadzone(msg.axes[MOVE_Y_AXIS], self.deadzone)
+            self.v_cmd[0] = move_x * self.scale
+            self.v_cmd[1] = move_y * self.scale
         
-        # Right stick: Pitch/Yaw orientation (axes 2 and 3)  
-        if len(msg.axes) >= 4:
-            right_x = self.apply_deadzone(msg.axes[2], self.deadzone)  # Yaw (around Z)
-            right_y = self.apply_deadzone(-msg.axes[3], self.deadzone) # Pitch (around Y, inverted)
-            self.v_cmd[4] = right_y * self.rotation_scale   # Pitch (around Y)
-            self.v_cmd[5] = right_x * self.rotation_scale   # Yaw (around Z)
+        # Orientation controls
+        if len(msg.axes) > max(PITCH_AXIS, YAW_AXIS):
+            pitch_input = self.apply_deadzone(msg.axes[PITCH_AXIS], self.deadzone)
+            yaw_input = self.apply_deadzone(msg.axes[YAW_AXIS], self.deadzone)
+            self.v_cmd[4] = pitch_input * self.rotation_scale
+            self.v_cmd[5] = yaw_input * self.rotation_scale
         
-        # Triggers: Z movement (axes 4 and 5)
-        # Note: Trigger values in ROS Joy messages are typically -1 to 1
-        if len(msg.axes) >= 6:
-            lt = msg.axes[4]  # Left trigger 
-            rt = msg.axes[5]  # Right trigger
-            # Convert from -1..1 range to 0..1 range if needed
+        # Z movement (triggers)
+        if len(msg.axes) > max(MOVE_Z_LEFT_TRIGGER, MOVE_Z_RIGHT_TRIGGER):
+            lt = msg.axes[MOVE_Z_LEFT_TRIGGER]
+            rt = msg.axes[MOVE_Z_RIGHT_TRIGGER]
             if lt < 0:
                 lt = (lt + 1) / 2
             if rt < 0:
                 rt = (rt + 1) / 2
-            z_vel = rt - lt  # Up when RT pressed, down when LT pressed
-            self.v_cmd[2] = z_vel * self.scale            # Z velocity
+            self.v_cmd[2] = (rt - lt) * self.scale
         
-        # Shoulder buttons: Roll (buttons 4 and 5 are typically LB/RB)
-        roll_vel = 0
-        if len(msg.buttons) >= 6:
-            if msg.buttons[4]:  # Left bumper (roll left)
-                roll_vel = -1.0
-            elif msg.buttons[5]:  # Right bumper (roll right)
-                roll_vel = 1.0
-        self.v_cmd[3] = roll_vel * self.rotation_scale  # Roll (around X)
+        # Roll controls
+        if len(msg.buttons) > max(ROLL_LEFT_BUTTON, ROLL_RIGHT_BUTTON):
+            if msg.buttons[ROLL_LEFT_BUTTON]:
+                self.v_cmd[3] = -self.rotation_scale
+            elif msg.buttons[ROLL_RIGHT_BUTTON]:
+                self.v_cmd[3] = self.rotation_scale
         
-        # Only compute IK if there's actual input
+        # Compute IK if there's input
         if np.any(np.abs(self.v_cmd) > 0.001):
             try:
                 J = self.compute_jacobian_improved(self.my_chain, self.q.tolist())
-                sv = LA.svd(J, compute_uv=False)
-                if sv.min() < 0.01:
-                    self.get_logger().warn(f"Near singularity: {sv.min():.4f}")
-                
                 lambda_ = 0.1
                 JJT = J.dot(J.T)
                 inv = LA.inv(JJT + (lambda_**2) * np.eye(JJT.shape[0]))
                 J_pinv = J.T.dot(inv)
                 q_dot = J_pinv.dot(self.v_cmd)
                 
+                joint_velocities = np.zeros(7)
                 actuated_idx = 0
+                
                 for i in range(1, len(self.q)):
                     if i == 3:  # Skip fixed joint
                         continue
                     if actuated_idx < len(q_dot):
                         self.q[i] += q_dot[actuated_idx] * self.dt
+                        # Map to joint velocities
+                        if i == 1:
+                            joint_velocities[0] = q_dot[actuated_idx]
+                        elif i == 2:
+                            joint_velocities[1] = q_dot[actuated_idx]
+                        elif i == 4:
+                            joint_velocities[3] = q_dot[actuated_idx]
+                        elif i == 5:
+                            joint_velocities[4] = q_dot[actuated_idx]
+                        elif i == 6:
+                            joint_velocities[5] = q_dot[actuated_idx]
+                        elif i == 7:
+                            joint_velocities[6] = q_dot[actuated_idx]
                         actuated_idx += 1
                 
-                self.plot_arm(self.q)
-                self.update_all_sliders()
+                self.publish_motor_commands(joint_velocities)
                 
             except Exception as e:
                 self.get_logger().error(f"IK computation error: {str(e)}")
+        else:
+            self.publish_motor_commands(np.zeros(7))
 
 
 def main(args=None):
@@ -338,31 +270,12 @@ def main(args=None):
     
     try:
         node = InverseKinematicsNode()
-        
-        # Use a timer to keep matplotlib responsive
-        def update_plot():
-            try:
-                plt.pause(0.001)  # Small pause to allow matplotlib to update
-            except:
-                pass
-        
-        # Create a timer to update the plot
-        timer = node.create_timer(0.05, update_plot)  # 20Hz update rate
-        
-        node.get_logger().info("Starting ROS2 spinning...")
-        
-        # Keep both ROS2 and matplotlib running
-        try:
-            rclpy.spin(node)
-        except KeyboardInterrupt:
-            node.get_logger().info("Shutting down...")
-        finally:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if 'node' in locals():
             node.destroy_node()
-            rclpy.shutdown()
-            plt.close('all')
-            
-    except Exception as e:
-        print(f"Failed to start node: {e}")
         rclpy.shutdown()
 
 
