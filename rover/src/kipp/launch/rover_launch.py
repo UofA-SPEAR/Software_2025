@@ -45,12 +45,12 @@ def generate_launch_description():
 
     return launch.LaunchDescription([
         SetEnvironmentVariable(name='RCUTILS_COLORIZED_OUTPUT', value='1'),
-        arm_control_canbus,
-        arm_control_xbox,
+        # arm_control_canbus,
+        # arm_control_xbox,
         drive_control_canbus,
         drive_control_xbox,
 
-        arm_encoders,
+        # arm_encoders,
     ])
 
 

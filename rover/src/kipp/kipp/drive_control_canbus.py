@@ -105,12 +105,12 @@ class Kipp_Can_Drive(Node):
     def drive_actuator_id_to_can_id(self, actuator_id):
         # Map your actuator_id to its corresponding CAN ID for drive motors
         mapping = {
-            "fl": 0x13,
-            "fr": 0x16,
-            "ml": 0x12,
-            "mr": 0x15,
-            "bl": 0x11,
-            "br": 0x14,
+            "fl": 0x14,
+            "fr": 0x12,
+            "ml": 0x26,
+            "mr": 0x21,
+            "bl": 0x13,
+            "br": 0x11,
         }
         return mapping.get(actuator_id, None)
 
