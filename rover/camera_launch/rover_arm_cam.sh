@@ -5,7 +5,7 @@
 SERIAL_NUMBER="734C0A89"  
 
 # Find the primary video device (index0) for this camera
-DEVICE_PATH=$(find /dev/v4l/by-id/ -name "*$SERIAL_NUMBER*-video-index2" | head -n 1)
+DEVICE_PATH=$(find /dev/v4l/by-id/ -name "*$SERIAL_NUMBER*-video-index0" | head -n 1)
 
 if [ -z "$DEVICE_PATH" ]; then
     echo "No device found for: $SERIAL_NUMBER"
