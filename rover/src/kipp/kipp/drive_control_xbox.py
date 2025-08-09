@@ -26,7 +26,7 @@ class XboxControllerNode(Node):
         self.last_received_time = self.get_clock().now()
         
         twist = Twist()
-        left_trigger = 1 - msg.axes[4]  # Assuming axis 3 is the left trigger
+        left_trigger = 1 - msg.axes[2]  # Assuming axis 3 is the left trigger
         right_trigger = 1 - msg.axes[5]  # Assuming axis 6 is the right trigger
         steering = msg.axes[0]
 
