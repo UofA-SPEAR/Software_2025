@@ -12,180 +12,125 @@ class ArmEncoderReaderNode(Node):
     def __init__(self):
         super().__init__('arm_encoder_reader_node')
         
-        # Initialize CAN bus
         try:
-            self.bus = can.interface.Bus(interface='socketcan', channel='vcan0', bitrate=1000000)
+            self.bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=1000000)
             self.get_logger().info("CAN bus initialized successfully")
         except Exception as e:
             self.get_logger().error(f"Failed to initialize CAN bus: {e}")
             self.bus = None
             return
         
-        # Publisher for joint angles
-        self.joint_angles_pub = self.create_publisher(
-            Float64MultiArray, 
-            'arm_joint_angles', 
-            10
-        )
+        self.joint_angles_pub = self.create_publisher(Float64MultiArray, 'arm_joint_angles', 10)
         
-        # Arm actuator IDs mapping (from your CAN docs)
-        self.arm_actuator_ids = [
-            0x30,  # Joint 0: Shoulder Yaw
-            0x31,  # Joint 1: Shoulder Pitch  
-            0x32,  # Joint 2: Elbow Pitch
-            0x33,  # Joint 3: Elbow Roll
-            0x34,  # Joint 4: Wrist Pitch
-            0x35,  # Joint 5: Wrist Roll
-            0x36   # Joint 6: End Effector
-        ]
+        # DEBUG: Check if these IDs match what you expect from the CAN docs
+        self.arm_actuator_ids = [0x31, 0x32, 0x34, 0x35, 0x36, 0x16]
         
-        # Store latest joint angles (initialize to 0.0)
         self.joint_angles = [0.0] * len(self.arm_actuator_ids)
-        self.angle_timestamps = [0.0] * len(self.arm_actuator_ids)
-        
-        # CAN message parameters
-        self.position_feedback_command_id = 0x00
-        self.jetson_node_id = 0x01
-        
-        # Thread safety
+        self.offset_angles = [None] * len(self.arm_actuator_ids)
         self.angles_lock = threading.Lock()
         
-        # Start CAN listener thread
+        self.position_feedback_command_id = 0x01
+        self.jetson_node_id = 0x01
+        
+        # DEBUG: Add message counters
+        self.total_messages_received = 0
+        self.position_feedback_messages = 0
+        self.valid_actuator_messages = 0
+        
         self.can_thread = threading.Thread(target=self.can_listener_thread, daemon=True)
         self.can_thread.start()
         
-        # Timer to publish joint angles periodically
-        self.publish_timer = self.create_timer(0.1, self.publish_joint_angles)  # 10 Hz
+        self.publish_timer = self.create_timer(0.1, self.publish_joint_angles)
         
-        # Timer to check for stale data
-        self.staleness_timer = self.create_timer(1.0, self.check_data_staleness)  # 1 Hz
-        
-        self.get_logger().info("Arm Encoder Reader Node initialized")
-        self.get_logger().info(f"Publishing joint angles on: arm_joint_angles")
-        self.get_logger().info(f"Listening for position feedback from actuator IDs: {[hex(id) for id in self.arm_actuator_ids]}")
+        # DEBUG: Add debug timer to print statistics
+        self.debug_timer = self.create_timer(2.0, self.print_debug_stats)
 
     def can_listener_thread(self):
-        """
-        Background thread to continuously listen for CAN messages.
-        """
         self.get_logger().info("CAN listener thread started")
         
         while rclpy.ok() and self.bus:
             try:
-                # Wait for CAN message (timeout after 1 second)
                 message = self.bus.recv(timeout=1.0)
                 if message:
+                    self.total_messages_received += 1
                     self.process_can_message(message)
-                    
             except Exception as e:
-                if rclpy.ok():  # Only log if we're not shutting down
+                if rclpy.ok():
                     self.get_logger().error(f"CAN listener error: {e}")
                 break
-                
-        self.get_logger().info("CAN listener thread stopped")
 
     def process_can_message(self, message):
-        """
-        Process incoming CAN message and extract position feedback.
-        
-        Args:
-            message (can.Message): Received CAN message
-        """
         try:
-            # Decode 29-bit arbitration ID
-            # Format: Priority (5 bits) | Command ID (8 bits) | Receiver Node ID (8 bits) | Sender Node ID (8 bits)
             arbitration_id = message.arbitration_id
-            
-            # Extract fields
             sender_node_id = arbitration_id & 0xFF
             receiver_node_id = (arbitration_id >> 8) & 0xFF
             command_id = (arbitration_id >> 16) & 0xFF
             priority = (arbitration_id >> 24) & 0x1F
             
+            # DEBUG: Log every message for debugging
+            self.get_logger().info(f"CAN MSG: ID=0x{arbitration_id:08X}, "
+                                 f"Sender=0x{sender_node_id:02X}, "
+                                 f"Receiver=0x{receiver_node_id:02X}, "
+                                 f"Command=0x{command_id:02X}, "
+                                 f"Data={message.data.hex()}")
+            
             # Check if this is a position feedback message to us
             if (command_id == self.position_feedback_command_id and 
                 receiver_node_id == self.jetson_node_id):
                 
+                self.position_feedback_messages += 1
+                self.get_logger().info(f"Position feedback message from 0x{sender_node_id:02X}")
+                
                 # Check if sender is one of our arm actuators
                 if sender_node_id in self.arm_actuator_ids:
+                    self.valid_actuator_messages += 1
                     joint_index = self.arm_actuator_ids.index(sender_node_id)
                     
-                    # Decode angle data (float32, big-endian to match your other code)
                     if len(message.data) >= 4:
                         angle = struct.unpack(">f", message.data[:4])[0]
                         
-                        # Update stored angle with thread safety
-                        with self.angles_lock:
-                            self.joint_angles[joint_index] = angle
-                            self.angle_timestamps[joint_index] = time.time()
+                        self.get_logger().info(f"Raw angle from joint {joint_index}: {angle}")
                         
-                        self.get_logger().debug(f"Joint {joint_index} (ID: {hex(sender_node_id)}): angle = {angle:.3f} rad ({angle*180/3.14159:.1f}°)")
+                        with self.angles_lock:
+                            if self.offset_angles[joint_index] is None:
+                                self.offset_angles[joint_index] = angle
+                                self.get_logger().info(f"Set offset for joint {joint_index}: {angle}")
+                            
+                            self.joint_angles[joint_index] = angle - self.offset_angles[joint_index]
+                            self.get_logger().info(f"Joint {joint_index} final angle: {self.joint_angles[joint_index]}")
                     else:
-                        self.get_logger().warn(f"Position feedback from {hex(sender_node_id)} has insufficient data: {len(message.data)} bytes")
+                        self.get_logger().warn(f"Insufficient data from 0x{sender_node_id:02X}: {len(message.data)} bytes")
+                else:
+                    self.get_logger().warn(f"Unknown actuator ID: 0x{sender_node_id:02X}")
+            else:
+                self.get_logger().debug(f"Not position feedback: cmd=0x{command_id:02X}, recv=0x{receiver_node_id:02X}")
                         
         except Exception as e:
             self.get_logger().error(f"Error processing CAN message: {e}")
 
-    def publish_joint_angles(self):
-        """
-        Publish current joint angles as Float64MultiArray.
-        """
-        msg = Float64MultiArray()
+    def print_debug_stats(self):
+        self.get_logger().info(f"DEBUG STATS - Total CAN messages: {self.total_messages_received}, "
+                             f"Position feedback: {self.position_feedback_messages}, "
+                             f"Valid actuator messages: {self.valid_actuator_messages}")
         
+        with self.angles_lock:
+            for i, (angle, offset) in enumerate(zip(self.joint_angles, self.offset_angles)):
+                self.get_logger().info(f"Joint {i}: angle={angle}, offset={offset}")
+
+    def publish_joint_angles(self):
+        msg = Float64MultiArray()
         with self.angles_lock:
             msg.data = self.joint_angles.copy()
-        
         self.joint_angles_pub.publish(msg)
-        
-        # Log angles occasionally (every 50 publishes = ~5 seconds at 10Hz)
-        if hasattr(self, '_publish_count'):
-            self._publish_count += 1
-        else:
-            self._publish_count = 1
-            
-        if self._publish_count % 50 == 0:
-            angle_str = ", ".join([f"{angle:.2f}" for angle in msg.data])
-            self.get_logger().info(f"Current joint angles (rad): [{angle_str}]")
-
-    def check_data_staleness(self):
-        """
-        Check for stale encoder data and warn if data is old.
-        """
-        current_time = time.time()
-        stale_threshold = 5.0  # seconds
-        
-        with self.angles_lock:
-            for i, timestamp in enumerate(self.angle_timestamps):
-                if timestamp > 0 and (current_time - timestamp) > stale_threshold:
-                    actuator_id = self.arm_actuator_ids[i]
-                    self.get_logger().warn(f"Joint {i} (ID: {hex(actuator_id)}) data is stale (last update: {current_time - timestamp:.1f}s ago)")
-
-    def get_current_joint_angles(self):
-        """
-        Get current joint angles (thread-safe).
-        
-        Returns:
-            list: Current joint angles in radians
-        """
-        with self.angles_lock:
-            return self.joint_angles.copy()
 
     def destroy_node(self):
-        """
-        Clean shutdown.
-        """
-        self.get_logger().info("Shutting down Arm Encoder Reader Node")
-        
-        # Close CAN bus
         if self.bus:
             self.bus.shutdown()
-        
         super().destroy_node()
 
 
 def main(args=None):
     rclpy.init(args=args)
-    
     try:
         node = ArmEncoderReaderNode()
         rclpy.spin(node)
