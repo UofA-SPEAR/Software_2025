@@ -2,10 +2,10 @@
 
 # Replace with the actual USB identifier for the Arducam
 # You can find it with: ls -l /dev/v4l/by-id/
-SERIAL_NUMBER="usb-Arducam_Technology_Co.__Ltd._USB_Camera_SN0001-video-index0"  
+SERIAL_NUMBER="734C0A89"  
 
 # Find the primary video device (index0) for this camera
-DEVICE_PATH=$(find /dev/v4l/by-id/ -name "*$SERIAL_NUMBER*-video-index0" | head -n 1)
+DEVICE_PATH=$(find /dev/v4l/by-id/ -name "*$SERIAL_NUMBER*-video-index2" | head -n 1)
 
 if [ -z "$DEVICE_PATH" ]; then
     echo "No device found for: $SERIAL_NUMBER"
@@ -20,4 +20,4 @@ gst-launch-1.0 v4l2src device="$DEVICE_PATH" ! \
     videoconvert ! \
     x264enc tune=zerolatency bitrate=2000 speed-preset=ultrafast ! \
     rtph264pay config-interval=1 pt=96 ! \
-    udpsink host=192.168.1.10 port=5040
+    udpsink host=192.168.1.10 port=5045
