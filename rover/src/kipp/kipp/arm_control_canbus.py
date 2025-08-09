@@ -13,7 +13,7 @@ class ArmCanVelocityNode(Node):
         
         # Initialize CAN bus
         try:
-            self.bus = can.interface.Bus(interface='socketcan', channel='vcan0', bitrate=1000000)
+            self.bus = can.interface.Bus(interface='socketcan', channel='can0', bitrate=1000000)
             self.get_logger().info("CAN bus initialized successfully")
         except Exception as e:
             self.get_logger().error(f"Failed to initialize CAN bus: {e}")
@@ -30,13 +30,13 @@ class ArmCanVelocityNode(Node):
         # Arm actuator IDs mapping (from your CAN docs)
         # Index in array -> CAN actuator ID
         self.arm_actuator_ids = [
-            0x30,  # Joint 0: Shoulder Yaw
-            0x31,  # Joint 1: Shoulder Pitch  
-            0x32,  # Joint 2: Elbow Pitch
-            0x33,  # Joint 3: Elbow Roll
-            0x34,  # Joint 4: Wrist Pitch
-            0x35,  # Joint 5: Wrist Roll
-            0x36   # Joint 6: End Effector
+            0x31,  # Joint 0: Shoulder Yaw
+            0x32,  # Joint 1: Shoulder Pitch  
+            0x34,  # Joint 2: Elbow Pitch
+            0x35,  # Joint 3: Elbow Roll
+            0x36,  # Joint 4: Wrist Pitch
+            0x16,  # Joint 5: Wrist Roll
+            0x15   # Joint 6: End Effector
         ]
         
         # CAN message parameters
