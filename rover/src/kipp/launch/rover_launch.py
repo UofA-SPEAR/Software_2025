@@ -22,6 +22,14 @@ def generate_launch_description():
             emulate_tty=True,
         )
     
+    arm_simple_xbox = Node(
+            package='kipp',
+            executable='arm_simple_xbox',
+            name='arm_simple_xbox',
+            output='screen',
+            emulate_tty=True,
+        )
+    
     drive_control_canbus = Node(
             package='kipp',
             executable='drive_control_canbus',
@@ -45,8 +53,9 @@ def generate_launch_description():
 
     return launch.LaunchDescription([
         SetEnvironmentVariable(name='RCUTILS_COLORIZED_OUTPUT', value='1'),
-        # arm_control_canbus,
+        arm_control_canbus,
         # arm_control_xbox,
+        arm_simple_xbox,
         drive_control_canbus,
         drive_control_xbox,
 
