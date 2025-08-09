@@ -5,3 +5,5 @@
 gnome-terminal -- bash -c "/home/spear1/Desktop/Software_2025/rover/camera_launch/rover_arm_cam.sh"
 
 gnome-terminal -- bash -c "/home/spear1/Desktop/Software_2025/rover/camera_launch/rover_pov_cam.sh"
+
+gnome-terminal -- bash -c "/home/spear1/Desktop/Software_2025/rover/camera_launch/rover_zed_cam.sh"
