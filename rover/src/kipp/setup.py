@@ -27,6 +27,7 @@ setup(
         'console_scripts': [
             'arm_control_canbus = kipp.arm_control_canbus:main',
             'arm_control_xbox = kipp.arm_control_xbox:main',
+            'arm_simple_xbox = kipp.arm_control_xbox:main',
             'drive_control_canbus = kipp.drive_control_canbus:main',
             'drive_control_xbox = kipp.drive_control_xbox:main',
 
