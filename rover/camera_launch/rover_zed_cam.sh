@@ -1,15 +1,23 @@
 #!/bin/bash
 
-mkdir -p /tmp/gst_frames
+# Replace with the actual USB identifier for the Arducam
+# You can find it with: ls -l /dev/v4l/by-id/
+SERIAL_NUMBER="OV0001"  
 
-while true; do
-  gst-launch-1.0 zedsrc camera-sn=31826195 ! timeoverlay ! tee name=split has-chain=true ! \
-  queue ! autovideoconvert ! fpsdisplaysink \
-  split. ! queue max-size-time=0 max-size-bytes=0 max-size-buffers=0 ! autovideoconvert ! \
-  x264enc byte-stream=true tune=zerolatency speed-preset=ultrafast bitrate=3000 ! \
-  h264parse ! rtph264pay config-interval=-1 pt=96 ! queue ! \
-  udpsink clients=192.168.1.10:5060 max-bitrate=3000000 sync=false async=false
+# Find the primary video device (index0) for this camera
+DEVICE_PATH=$(find /dev/v4l/by-id/ -name "*$SERIAL_NUMBER*-video-index0" | head -n 1)
 
-  echo "Pipeline exited. Restarting in 5 seconds..."
-  sleep 5
-done
+if [ -z "$DEVICE_PATH" ]; then
+    echo "No device found for: $SERIAL_NUMBER"
+    echo "Run 'ls -l /dev/v4l/by-id/' to check the exact name"
+    exit 1
+fi
+
+echo "Using camera at: $DEVICE_PATH"
+
+# Stream over UDP to the base station
+gst-launch-1.0 v4l2src device="$DEVICE_PATH" ! \
+    videoconvert ! \
+    x264enc tune=zerolatency bitrate=2000 speed-preset=ultrafast ! \
+    rtph264pay config-interval=1 pt=96 ! \
+    udpsink host=192.168.1.10 port=5060
