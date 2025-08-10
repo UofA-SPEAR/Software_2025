@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEVICE_PATH="/dev/video0"
+DEVICE_PATH="/dev/video2"
 
 if [ ! -e "$DEVICE_PATH" ]; then
     echo "No device found at: $DEVICE_PATH"
