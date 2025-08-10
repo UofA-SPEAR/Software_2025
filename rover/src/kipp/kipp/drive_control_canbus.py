@@ -107,8 +107,8 @@ class Kipp_Can_Drive(Node):
         mapping = {
             "fl": 0x14,
             "fr": 0x12,
-            "ml": 0x26,
-            "mr": 0x21,
+            "ml": 0x36,
+            "mr": 0x35,
             "bl": 0x13,
             "br": 0x11,
         }
