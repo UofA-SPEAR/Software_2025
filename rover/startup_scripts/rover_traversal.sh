@@ -1,41 +1,26 @@
 #!/bin/bash
 
-SESSION_NAME="rover_session"
+# Kill existing screen sessions
+screen -S rover_launch -X quit 2>/dev/null
+screen -S night_cam1 -X quit 2>/dev/null
+screen -S night_cam2 -X quit 2>/dev/null
 
-# Kill existing session if it exists
-tmux kill-session -t "$SESSION_NAME" 2>/dev/null
+# Start ROS launch in screen
+screen -dmS rover_launch bash -c "export ROS_DOMAIN_ID=10; source /home/spear1/Desktop/Software_2025/install/setup.bash; ros2 launch kipp rover_launch.py"
 
-# Create new session with first command (ROS launch)
-# tmux new-session -d -s "$SESSION_NAME" -n "rover_launch"
-# tmux send-keys -t "$SESSION_NAME:rover_launch" "export ROS_DOMAIN_ID=10; source /home/spear1/Desktop/Software_2025/install/setup.bash; ros2 launch kipp rover_launch.py" Enter
+# Start night vision cameras in screen
+screen -dmS night_cam1 bash -c "/home/spear1/Desktop/Software_2025/rover/camera_launch/rover_night_cam1.sh"
+screen -dmS night_cam2 bash -c "/home/spear1/Desktop/Software_2025/rover/camera_launch/rover_night_cam2.sh"
 
-# Create new window for night vision camera 1
-tmux new-window -t "$SESSION_NAME" -n "night_cam1"
-tmux send-keys -t "$SESSION_NAME:night_cam1" "/home/spear1/Desktop/Software_2025/rover/camera_launch/rover_night_cam1.sh" Enter
-
-# Create new window for night vision camera 2
-tmux new-window -t "$SESSION_NAME" -n "night_cam2"
-tmux send-keys -t "$SESSION_NAME:night_cam2" "/home/spear1/Desktop/Software_2025/rover/camera_launch/rover_night_cam2.sh" Enter
-
-# Create new window for POV camera
-# tmux new-window -t "$SESSION_NAME" -n "pov_cam"
-# tmux send-keys -t "$SESSION_NAME:pov_cam" "/home/spear1/Desktop/Software_2025/rover/camera_launch/rover_pov_cam.sh" Enter
-
-# Create new window for ZED camera
-# tmux new-window -t "$SESSION_NAME" -n "zed_cam"
-# tmux send-keys -t "$SESSION_NAME:zed_cam" "/home/spear1/Desktop/Software_2025/rover/camera_launch/rover_zed_cam.sh" Enter
-
-# Optional: Create window for the commented arm camera (uncomment if needed)
-# tmux new-window -t "$SESSION_NAME" -n "arm_cam"
-# tmux send-keys -t "$SESSION_NAME:arm_cam" "/home/spear1/Desktop/Software_2025/rover/camera_launch/rover_arm_cam.sh" Enter
-
-echo "Rover session started! Use 'tmux attach -t $SESSION_NAME' to view/interact with the processes."
-echo "Available windows:"
+echo "Rover processes started in screen sessions!"
+echo "Available sessions:"
 echo "  - rover_launch: Main ROS launch"
 echo "  - night_cam1: Night vision camera 1"
 echo "  - night_cam2: Night vision camera 2"
 echo ""
 echo "Commands:"
-echo "  tmux attach -t $SESSION_NAME    # Attach to session"
-echo "  tmux list-windows -t $SESSION_NAME  # List all windows"
-echo "  tmux kill-session -t $SESSION_NAME  # Stop all processes"
+echo "  screen -list                    # List all sessions"
+echo "  screen -r rover_launch          # Attach to ROS session"
+echo "  screen -r night_cam1            # Attach to camera 1"
+echo "  screen -r night_cam2            # Attach to camera 2"
+echo "  screen -S rover_launch -X quit  # Stop ROS session"
