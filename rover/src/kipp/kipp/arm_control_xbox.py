@@ -25,11 +25,11 @@ class InverseKinematicsNode(Node):
         self.links = [
             OriginLink(),
             URDFLink("base_rotation", [0, 0, 0.12], [0, 0, 0], [0, 0, 1], bounds=(-np.pi, np.pi)),
-            URDFLink("shoulder_lift", [0.06, 0, 0], [0, 0, np.pi], [1, 0, 0], bounds=(-np.pi/2, np.pi/2)),
+            URDFLink("shoulder_lift", [0, -0.06, 0], [0, 0, 0], [0, 1, 0], bounds=(-np.pi/2, np.pi/2)),
             URDFLink("fixed_joint", [0, 0, 0.35], [0, 0, 0], [0, 0, 1], bounds=(0, 0)),
-            URDFLink("joint_4", [0.0105, 0, 0], [0, 0, 0], [1, 0, 0], bounds=(-np.pi/2, np.pi/2)),
+            URDFLink("joint_4", [0, 0.0105, 0], [0, 0, 0], [0, 1, 0], bounds=(-np.pi/2, np.pi/2)),
             URDFLink("joint_5", [0, 0, 0.275], [0, 0, 0], [0, 0, 1], bounds=(-np.pi, np.pi)),
-            URDFLink("joint_6", [0.065, 0, 0], [0, 0, 0], [1, 0, 0], bounds=(-np.pi/2, np.pi/2)),
+            URDFLink("joint_6", [0, 0.065, 0], [0, 0, 0], [0, 1, 0], bounds=(-np.pi/2, np.pi/2)),
             URDFLink("joint_7", [0, 0, 0.375], [0, 0, 0], [0, 0, 1], bounds=(-np.pi, np.pi))
         ]
         

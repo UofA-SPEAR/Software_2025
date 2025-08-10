@@ -6,6 +6,6 @@ gnome-terminal -- bash -c "/home/prjadmin/Desktop/Software_2025/rover/camera_lau
 
 gnome-terminal -- bash -c "/home/prjadmin/Desktop/Software_2025/rover/camera_launch/base_night_cam2.sh"
 
-gnome-terminal -- bash -c "/home/prjadmin/Desktop/Software_2025/rover/camera_launch/base_arm_cam.sh"
+# gnome-terminal -- bash -c "/home/prjadmin/Desktop/Software_2025/rover/camera_launch/base_arm_cam.sh"
 
 gnome-terminal -- bash -c "/home/prjadmin/Desktop/Software_2025/rover/camera_launch/base_zed_cam.sh"

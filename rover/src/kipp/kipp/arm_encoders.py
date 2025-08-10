@@ -25,7 +25,11 @@ class ArmEncoderReaderNode(Node):
         # DEBUG: Check if these IDs match what you expect from the CAN docs
         self.arm_actuator_ids = [0x31, 0x32, 0x34, 0x35, 0x36, 0x16]
         
-        self.joint_angles = [0.0] * len(self.arm_actuator_ids)
+        # Initialize with specified initial values instead of zeros
+        self.initial_values = [0.0, -0.384, 2.391, 0.0, 1.379, 0.0]
+        # Multipliers for each joint
+        self.joint_multipliers = [0.01, 0.005, 0.0125, 0.02, 0.02, 1]
+        self.joint_angles = self.initial_values.copy()
         self.offset_angles = [None] * len(self.arm_actuator_ids)
         self.angles_lock = threading.Lock()
         
@@ -44,6 +48,9 @@ class ArmEncoderReaderNode(Node):
         
         # DEBUG: Add debug timer to print statistics
         self.debug_timer = self.create_timer(2.0, self.print_debug_stats)
+        
+        self.get_logger().info(f"Initialized with joint angles: {self.joint_angles}")
+        self.get_logger().info(f"Joint multipliers: {self.joint_multipliers}")
 
     def can_listener_thread(self):
         self.get_logger().info("CAN listener thread started")
@@ -93,11 +100,18 @@ class ArmEncoderReaderNode(Node):
                         
                         with self.angles_lock:
                             if self.offset_angles[joint_index] is None:
-                                self.offset_angles[joint_index] = angle
-                                self.get_logger().info(f"Set offset for joint {joint_index}: {angle}")
+                                # Calculate offset to achieve desired initial value
+                                # offset = raw_angle - desired_initial_value
+                                self.offset_angles[joint_index] = angle - self.initial_values[joint_index]
+                                self.get_logger().info(f"Set offset for joint {joint_index}: {self.offset_angles[joint_index]} "
+                                                     f"(raw: {angle}, target initial: {self.initial_values[joint_index]})")
                             
-                            self.joint_angles[joint_index] = angle - self.offset_angles[joint_index]
-                            self.get_logger().info(f"Joint {joint_index} final angle: {self.joint_angles[joint_index]}")
+                            # Apply offset and multiplier to get final angle
+                            # final_angle = (raw_angle - offset) * multiplier
+                            offset_angle = angle - self.offset_angles[joint_index]
+                            self.joint_angles[joint_index] = offset_angle * self.joint_multipliers[joint_index]
+                            self.get_logger().info(f"Joint {joint_index} final angle: {self.joint_angles[joint_index]} "
+                                                 f"(offset_angle: {offset_angle}, multiplier: {self.joint_multipliers[joint_index]})")
                     else:
                         self.get_logger().warn(f"Insufficient data from 0x{sender_node_id:02X}: {len(message.data)} bytes")
                 else:
@@ -114,8 +128,8 @@ class ArmEncoderReaderNode(Node):
                              f"Valid actuator messages: {self.valid_actuator_messages}")
         
         with self.angles_lock:
-            for i, (angle, offset) in enumerate(zip(self.joint_angles, self.offset_angles)):
-                self.get_logger().info(f"Joint {i}: angle={angle}, offset={offset}")
+            for i, (angle, offset, initial, multiplier) in enumerate(zip(self.joint_angles, self.offset_angles, self.initial_values, self.joint_multipliers)):
+                self.get_logger().info(f"Joint {i}: angle={angle:.3f}, offset={offset}, initial={initial}, multiplier={multiplier}")
 
     def publish_joint_angles(self):
         msg = Float64MultiArray()
