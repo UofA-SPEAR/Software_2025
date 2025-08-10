@@ -22,11 +22,6 @@ tmux send-keys -t "$SESSION_NAME:pov_cam" "/home/spear1/Desktop/Software_2025/ro
 # tmux send-keys -t "$SESSION_NAME:arm_cam" "/home/spear1/Desktop/Software_2025/rover/camera_launch/rover_arm_cam.sh" Enter
 
 echo "Rover session started! Use 'tmux attach -t $SESSION_NAME' to view/interact with the processes."
-echo "Available windows:"
-echo "  - rover_launch: Main ROS launch"
-echo "  - pov_cam: POV camera"
-echo "  - zed_cam: ZED camera"
-echo ""
 echo "Commands:"
 echo "  tmux attach -t $SESSION_NAME    # Attach to session"
 echo "  tmux list-windows -t $SESSION_NAME  # List all windows"
