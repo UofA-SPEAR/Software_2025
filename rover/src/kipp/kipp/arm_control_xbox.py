@@ -23,7 +23,7 @@ class InverseKinematicsNode(Node):
         self.joint3_axis_bind = 0     # Left stick X  - 0x35 Elbow Roll
         self.joint4_axis_bind = 1     # Left stick Y  - 0x36 Wrist Pitch
         self.joint5_axis_bind = 3     # Right stick X - 0x16 Wrist Roll
-        # Joint 6 (0x15 End Effector) - Not controlled in joint mode
+        self.joint6_axis_bind = 4     # Right stick Y - 0x15 End Effector
         
         self.joint_mode = False
         self.scale = 5.0
@@ -173,8 +173,10 @@ class InverseKinematicsNode(Node):
             self.q[7] += joint5_input * joint_scale
             joint_velocities[5] = joint5_input
         
-        # Joint 6 (0x15 - End Effector) - NOT CONTROLLED IN JOINT MODE
-        # joint_velocities[6] remains 0
+        # Joint 6 (0x15 - End Effector) - axis control
+        joint6_input = self.apply_deadzone(msg.axes[self.joint6_axis_bind], self.deadzone)
+        if abs(joint6_input) > 0.001:
+            joint_velocities[6] = joint6_input
         
         self.publish_motor_commands(joint_velocities)
     
