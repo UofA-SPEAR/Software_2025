@@ -13,6 +13,18 @@ class InverseKinematicsNode(Node):
     def __init__(self):
         super().__init__('inverse_kinematics_node')
         
+        # Joint Mode Controller Binds (matching CAN actuator mapping)
+        self.joint0_pos_bind = 0      # A button  - 0x31 Shoulder Yaw
+        self.joint0_neg_bind = 1      # B button  - 0x31 Shoulder Yaw
+        self.joint1_pos_bind = 2      # X button  - 0x32 Shoulder Pitch
+        self.joint1_neg_bind = 3      # Y button  - 0x32 Shoulder Pitch
+        self.joint2_pos_bind = 4      # LB button - 0x34 Elbow Pitch
+        self.joint2_neg_bind = 5      # RB button - 0x34 Elbow Pitch
+        self.joint3_axis_bind = 0     # Left stick X  - 0x35 Elbow Roll
+        self.joint4_axis_bind = 1     # Left stick Y  - 0x36 Wrist Pitch
+        self.joint5_axis_bind = 3     # Right stick X - 0x16 Wrist Roll
+        # Joint 6 (0x15 End Effector) - Not controlled in joint mode
+        
         self.joint_mode = False
         self.scale = 5.0
         self.rotation_scale = 25.0
@@ -113,38 +125,50 @@ class InverseKinematicsNode(Node):
         joint_scale = 0.02
         joint_velocities = np.zeros(7)
         
-        if msg.buttons[0]:
+        # Joint 0 (0x31 - Shoulder Yaw)
+        if msg.buttons[self.joint0_pos_bind]:
             self.q[1] += joint_scale
             joint_velocities[0] = 1.0
-        if msg.buttons[1]:
+        if msg.buttons[self.joint0_neg_bind]:
             self.q[1] -= joint_scale
             joint_velocities[0] = -1.0
-        if msg.buttons[2]:
+            
+        # Joint 1 (0x32 - Shoulder Pitch)
+        if msg.buttons[self.joint1_pos_bind]:
             self.q[2] += joint_scale
             joint_velocities[1] = 1.0
-        if msg.buttons[3]:
+        if msg.buttons[self.joint1_neg_bind]:
             self.q[2] -= joint_scale
             joint_velocities[1] = -1.0
-        if msg.buttons[4]:
+            
+        # Joint 2 (0x34 - Elbow Pitch)
+        if msg.buttons[self.joint2_pos_bind]:
             self.q[4] += joint_scale
-            joint_velocities[3] = 1.0
-        if msg.buttons[5]:
+            joint_velocities[2] = 1.0
+        if msg.buttons[self.joint2_neg_bind]:
             self.q[4] -= joint_scale
-            joint_velocities[3] = -1.0
+            joint_velocities[2] = -1.0
         
-        joint5_input = self.apply_deadzone(msg.axes[0], self.deadzone)
-        joint6_input = self.apply_deadzone(msg.axes[1], self.deadzone)
-        joint7_input = self.apply_deadzone(msg.axes[3], self.deadzone)
-        
+        # Joint 3 (0x35 - Elbow Roll) - axis control
+        joint3_input = self.apply_deadzone(msg.axes[self.joint3_axis_bind], self.deadzone)
+        if abs(joint3_input) > 0.001:
+            self.q[5] += joint3_input * joint_scale
+            joint_velocities[3] = joint3_input
+            
+        # Joint 4 (0x36 - Wrist Pitch) - axis control
+        joint4_input = self.apply_deadzone(msg.axes[self.joint4_axis_bind], self.deadzone)
+        if abs(joint4_input) > 0.001:
+            self.q[6] += joint4_input * joint_scale
+            joint_velocities[4] = joint4_input
+            
+        # Joint 5 (0x16 - Wrist Roll) - axis control
+        joint5_input = self.apply_deadzone(msg.axes[self.joint5_axis_bind], self.deadzone)
         if abs(joint5_input) > 0.001:
-            self.q[5] += joint5_input * joint_scale
-            joint_velocities[4] = joint5_input
-        if abs(joint6_input) > 0.001:
-            self.q[6] += joint6_input * joint_scale
-            joint_velocities[5] = joint6_input
-        if abs(joint7_input) > 0.001:
-            self.q[7] += joint7_input * joint_scale
-            joint_velocities[6] = joint7_input
+            self.q[7] += joint5_input * joint_scale
+            joint_velocities[5] = joint5_input
+        
+        # Joint 6 (0x15 - End Effector) - NOT CONTROLLED IN JOINT MODE
+        # joint_velocities[6] remains 0
         
         self.publish_motor_commands(joint_velocities)
     

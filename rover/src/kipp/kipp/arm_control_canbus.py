@@ -6,6 +6,7 @@ from std_msgs.msg import Float64MultiArray
 import can
 import struct
 from can.message import Message
+import time
 
 class ArmCanVelocityNode(Node):
     def __init__(self):
@@ -28,7 +29,6 @@ class ArmCanVelocityNode(Node):
         )
         
         # Arm actuator IDs mapping (from your CAN docs)
-        # Index in array -> CAN actuator ID
         self.arm_actuator_ids = [
             0x31,  # Joint 0: Shoulder Yaw
             0x32,  # Joint 1: Shoulder Pitch  
@@ -44,28 +44,39 @@ class ArmCanVelocityNode(Node):
         self.velocity_command_id = 0x03
         self.sender_node_id = 0x01  # Jetson node ID
         
+        # Rate limiting
+        self.last_send_time = 0
+        self.send_interval = 0.1  # 10Hz = 0.1 seconds
+        self.latest_commands = None
+        
+        # Timer to send commands at 10Hz
+        self.send_timer = self.create_timer(self.send_interval, self.send_commands)
+        
         self.get_logger().info("Arm CAN Velocity Node initialized")
         self.get_logger().info(f"Subscribed to: motor_commands")
         self.get_logger().info(f"Arm actuator IDs: {[hex(id) for id in self.arm_actuator_ids]}")
+        self.get_logger().info("Rate limited to 10Hz")
 
     def motor_commands_callback(self, msg):
         """
-        Callback for motor commands from IK node.
-        Converts joint velocities to CAN velocity commands.
+        Store latest motor commands without sending immediately.
         """
-        if not self.bus:
-            self.get_logger().warn("CAN bus not available, skipping command")
-            return
-            
-        # Validate message data
         if len(msg.data) != 7:
             self.get_logger().warn(f"Expected 7 joint velocities, got {len(msg.data)}")
             return
         
+        self.latest_commands = msg.data
+
+    def send_commands(self):
+        """
+        Send the latest motor commands at 10Hz rate.
+        """
+        if not self.bus or self.latest_commands is None:
+            return
+        
         # Send velocity command for each arm joint
-        for joint_index, velocity in enumerate(msg.data):
+        for joint_index, velocity in enumerate(self.latest_commands):
             if joint_index >= len(self.arm_actuator_ids):
-                self.get_logger().warn(f"Joint index {joint_index} exceeds available actuators")
                 break
                 
             actuator_id = self.arm_actuator_ids[joint_index]
@@ -73,17 +84,10 @@ class ArmCanVelocityNode(Node):
             # Clamp velocity to valid range (-1.0 to 1.0)
             clamped_velocity = max(-1.0, min(1.0, velocity))
             
-            if abs(clamped_velocity) != abs(velocity):
-                self.get_logger().warn(f"Joint {joint_index}: Velocity {velocity:.3f} clamped to {clamped_velocity:.3f}")
-            
             # Create and send CAN message
             try:
                 message = self.create_velocity_command(actuator_id, clamped_velocity)
                 self.bus.send(message)
-                
-                # Log significant velocity commands (optional, comment out if too verbose)
-                if abs(clamped_velocity) > 0.001:
-                    self.get_logger().debug(f"Joint {joint_index} (ID: {hex(actuator_id)}): velocity = {clamped_velocity:.3f}")
                     
             except Exception as e:
                 self.get_logger().error(f"Failed to send velocity command for joint {joint_index}: {e}")
@@ -91,16 +95,7 @@ class ArmCanVelocityNode(Node):
     def create_velocity_command(self, actuator_id, velocity):
         """
         Create a CAN velocity command message.
-        
-        Args:
-            actuator_id (int): The actuator CAN ID (e.g., 0x30 for Shoulder Yaw)
-            velocity (float): Velocity command (-1.0 to 1.0)
-            
-        Returns:
-            can.Message: CAN message ready to send
         """
-        # Construct 29-bit arbitration ID according to your format:
-        # Priority (5 bits) | Command ID (8 bits) | Receiver Node ID (8 bits) | Sender Node ID (8 bits)
         arbitration_id = (
             self.priority << 24 | 
             self.velocity_command_id << 16 | 
@@ -108,10 +103,8 @@ class ArmCanVelocityNode(Node):
             self.sender_node_id
         )
         
-        # Pack velocity as float32 (big-endian to match your existing code)
         data = struct.pack(">f", velocity)
         
-        # Create CAN message
         message = can.Message(
             arbitration_id=arbitration_id,
             data=data,
@@ -123,10 +116,8 @@ class ArmCanVelocityNode(Node):
     def send_stop_command(self):
         """
         Send stop command to all arm actuators.
-        Useful for emergency stop or shutdown.
         """
         if not self.bus:
-            self.get_logger().warn("CAN bus not available for stop command")
             return
             
         self.get_logger().info("Sending stop commands to all arm actuators")
