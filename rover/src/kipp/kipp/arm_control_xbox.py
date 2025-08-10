@@ -49,6 +49,12 @@ class InverseKinematicsNode(Node):
         self.q = np.zeros(8)
         self.v_cmd = np.zeros(6)
         
+        # Create consistent mapping between IK solution and motor commands
+        # Maps IK solution index to motor command index
+        self.ik_to_motor_map = [0, 1, 2, 3, 4, 5]  # IK indices 0-5 map to motor indices 0-5
+        # Maps kinematic chain q indices to IK solution indices  
+        self.q_to_ik_map = {1: 0, 2: 1, 4: 2, 5: 3, 6: 4, 7: 5}  # q[1]->IK[0], q[2]->IK[1], etc.
+        
         self.joy_subscription = self.create_subscription(Joy, 'manual/joy2', self.joy_callback, 10)
         self.encoder_subscription = self.create_subscription(Float64MultiArray, 'arm_joint_angles', self.encoder_callback, 10)
         self.motor_publisher = self.create_publisher(Float64MultiArray, 'motor_commands', 10)
@@ -208,26 +214,21 @@ class InverseKinematicsNode(Node):
                 q_dot = J_pinv.dot(self.v_cmd)
                 
                 joint_velocities = np.zeros(7)
-                actuated_idx = 0
                 
-                for i in range(1, len(self.q)):
-                    if i == 3:
-                        continue
-                    if actuated_idx < len(q_dot):
-                        self.q[i] += q_dot[actuated_idx] * self.dt
-                        if i == 1:
-                            joint_velocities[0] = q_dot[actuated_idx]
-                        elif i == 2:
-                            joint_velocities[1] = q_dot[actuated_idx]
-                        elif i == 4:
-                            joint_velocities[3] = q_dot[actuated_idx]
-                        elif i == 5:
-                            joint_velocities[4] = q_dot[actuated_idx]
-                        elif i == 6:
-                            joint_velocities[5] = q_dot[actuated_idx]
-                        elif i == 7:
-                            joint_velocities[6] = q_dot[actuated_idx]
-                        actuated_idx += 1
+                # Use mapping to assign IK velocities to correct motor commands
+                for ik_idx, motor_idx in enumerate(self.ik_to_motor_map):
+                    if ik_idx < len(q_dot):
+                        joint_velocities[motor_idx] = q_dot[ik_idx]
+                
+                # Update q values using the same mapping
+                for q_idx, ik_idx in self.q_to_ik_map.items():
+                    if ik_idx < len(q_dot):
+                        self.q[q_idx] += q_dot[ik_idx] * self.dt
+                
+                # Normalize joint velocities to stay within [-1, 1] range
+                max_velocity = np.max(np.abs(joint_velocities))
+                if max_velocity > 1.0:
+                    joint_velocities = joint_velocities / max_velocity
                 
                 self.publish_motor_commands(joint_velocities)
                 

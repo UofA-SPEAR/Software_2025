@@ -16,7 +16,7 @@ class ArmEncoderReaderNode(Node):
         
         self.arm_actuator_ids = [0x31, 0x32, 0x34, 0x35, 0x36, 0x16]
         self.initial_values = [0, 0, 0, 0, 0, 0]
-        self.joint_multipliers = [0.01, 0.005, 0.0125, 0.02, 0.02, 1]
+        self.joint_multipliers = [0.01, 0.005, 0.0125, 0.02, 0.02 / 1.5, 0.0125]
         self.joint_angles = self.initial_values.copy()
         self.offset_angles = [None] * len(self.arm_actuator_ids)
         self.angles_lock = threading.Lock()
